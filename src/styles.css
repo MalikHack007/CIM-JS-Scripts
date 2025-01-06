@@ -1,0 +1,30 @@
+form {
+    max-width: 1500px; /* Set the maximum width of the form */
+    width: 100%; /* Allow the form to be responsive */
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #888;
+    background-color: #fefefe;
+    box-sizing: border-box; /* Includes padding and border in the width calculation */
+}
+
+label, select, input {
+    font-size: 16px; /* Control the font size of the labels and input elements */
+}
+
+input[type="submit"] {
+    padding: 12px 24px;
+    font-size: 16px; /* Set the font size for the submit button */
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+    cursor: pointer;
+}
+
+.radio-group{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
