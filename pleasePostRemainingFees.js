@@ -45,7 +45,7 @@ function customizedMessage(){
 
             return {isCaseSpecific, usersCase};
 
-        }
+        };
 
         const CSDetails = getCSDetails();
 
@@ -63,7 +63,7 @@ function customizedMessage(){
             }
 
             return {hasPaid, remainingAttorneyFee};
-        }
+        };
 
         const {hasPaid, remainingAttorneyFee} = getAttyFeeDetails();
 
@@ -73,7 +73,7 @@ function customizedMessage(){
             const isFurtherInquiry = furtherInquiryInput === "y";
 
             return isFurtherInquiry;
-        }
+        };
 
         const isFurtherInquiry = getFurtherInquiryDetails();
 
@@ -116,13 +116,13 @@ function customizedMessage(){
                 }
             }
             return {isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime};
-        }
+        };
 
         const {isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime} = getPPDetails();
         
         return {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, 
                 countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry}
-    }
+    };
 
     const {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry} = getAllCaseDetails();
 
@@ -256,12 +256,12 @@ function customizedMessage(){
                 <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(1015+remainingAttorneyFee)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace(hasPaid,remainingAttorneyFee)}$715 filing fee + $300 asylum program fee). Please follow the instructions attached to the invoice email and make a payment at your earliest convenience.
                 </p>
                 <p>&nbsp;</p>
-                `
+                `;
                 const secondPlacePP = `
                 <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(1015+remainingAttorneyFee)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace(hasPaid,remainingAttorneyFee)}$715 filing fee + $300 asylum program fee), and a separate invoice email for the premium processing fee of $2,805. We accept payments via Zelle, wire transfer, counter deposit, and credit card, etc. Please follow the instructions attached to the invoice email and leave a message after you have initiated the payment(s). <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">Note if you will proceed with regular processing first, you do not need to pay the premium processing fee now.</span>
                 </p>
                 <p>&nbsp;</p>
-                `
+                `;
                 if (isPp){
                     return secondPlacePP;
                 }
@@ -287,7 +287,7 @@ function customizedMessage(){
                 return "<p>Please note that we must receive the required fees before we can file the case. Thank you!</p>";
             }
         }
-    }
+    };
 
     const customizedParagraphs = {
         part1:`
@@ -328,13 +328,13 @@ function customizedMessage(){
 
         part5: `${handleCaseDetails.handleFurtherInquiry(isFurtherInquiry)}`
                               
-    }
+    };
 
     let customizedMessage = "";
 
     for(let key in customizedParagraphs){
         customizedMessage += customizedParagraphs[key];
-    }
+    };
 
     return customizedMessage;
     
