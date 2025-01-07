@@ -220,6 +220,7 @@ function customizedMessage(){
                 ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to 
                 avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before 
                 filing so that the actual filing plan we proceed with is consistent with your preference.</strong></p>
+                <p>&nbsp;</p>
                 `;
 
                 function handleH1bExpiration(h1bIsExpiring){
