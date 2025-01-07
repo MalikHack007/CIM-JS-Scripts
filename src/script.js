@@ -2,10 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isCaseSpecificRadios = document.querySelectorAll('input[name="isCaseSpecific"]');
     const hasPaidRadios = document.querySelectorAll('input[name="hasPaid"]');
     const isPpRadios = document.querySelectorAll('input[name="isPp"]');
+    const priorityDateIsCurrentRadios = document.querySelectorAll('input[name = "priorityDateIsCurrent"]');
     const anotherPriorityDateRadios = document.querySelectorAll('input[name="anotherPriorityDate"]');
     const isInsideUSRadios = document.querySelectorAll('input[name="isInsideUS"]');
   
     const usersCaseContainer = document.getElementById('usersCaseContainer');
+    const usersCaseContainer2 = document.querySelector('#usersCaseContainer.usersCase2');
     const remainingAttorneyFeeContainer = document.getElementById('remainingAttorneyFeeContainer');
     const countryOfBirthContainer = document.getElementById('countryOfBirthContainer');
     const priorityDateIsCurrentContainer = document.getElementById('priorityDateIsCurrentContainer');
@@ -27,16 +29,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const anotherPriorityDate = document.querySelector('input[name="anotherPriorityDate"]:checked')?.value;
       const isInsideUS = document.querySelector('input[name="isInsideUS"]:checked')?.value;
       const usersCase = document.querySelector('select[name="usersCase"]')?.value;
+      const priorityDateIsCurrent = document.querySelector('input[name = "priorityDateIsCurrent"]:checked')?.value;
   
       // Show/hide User's Case and determine its position
       if (isCaseSpecific === 'yes') {
         usersCaseContainer.classList.remove('hidden');
-        document.getElementById('isCaseSpecificContainer').insertAdjacentElement('afterend', usersCaseContainer);
-      } else if (isCaseSpecific === 'no' && isPp === 'yes') {
-        usersCaseContainer.classList.remove('hidden');
+      } 
+      
+      else if (isCaseSpecific === 'no' && isPp === 'yes') {
+        usersCaseContainer2.classList.remove('hidden');
         moveUsersCaseAfter(document.getElementById('isPpContainer'));
-      } else {
+      } 
+      
+      else {
         usersCaseContainer.classList.add('hidden');
+        usersCaseContainer2.classList.add('hidden');
       }
   
       // Show/hide Remaining Attorney Fee
@@ -47,20 +54,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   
       // Show/hide additional fields for EB1A + Premium Processing
-      if (isPp === 'yes' && usersCase === 'EB1A') {
+      if (isPp === 'yes' && (usersCase === 'EB1A')) {
         countryOfBirthContainer.classList.remove('hidden');
         priorityDateIsCurrentContainer.classList.remove('hidden');
-        anotherPriorityDateContainer.classList.remove('hidden');
         isInsideUSContainer.classList.remove('hidden');
         serviceCenterContainer.classList.remove('hidden');
         processingTimeContainer.classList.remove('hidden');
-      } else {
+      } 
+      
+      else {
         countryOfBirthContainer.classList.add('hidden');
         priorityDateIsCurrentContainer.classList.add('hidden');
         anotherPriorityDateContainer.classList.add('hidden');
         isInsideUSContainer.classList.add('hidden');
         serviceCenterContainer.classList.add('hidden');
         processingTimeContainer.classList.add('hidden');
+      }
+
+      //another priority date field only shows up when pd is not current
+      if (priorityDateIsCurrent === 'yes'){
+        anotherPriorityDateContainer.classList.add('hidden');
+      }
+
+      else{
+        anotherPriorityDateContainer.classList.remove('hidden');
       }
   
       // Show/hide Priority Date
@@ -82,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isCaseSpecificRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
     hasPaidRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
     isPpRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
+    priorityDateIsCurrentRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
     anotherPriorityDateRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
     isInsideUSRadios.forEach(radio => radio.addEventListener('change', updateVisibility));
     document.querySelector('select[name="usersCase"]').addEventListener('change', updateVisibility);
