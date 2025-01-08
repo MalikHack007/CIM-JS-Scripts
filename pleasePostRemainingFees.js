@@ -47,53 +47,65 @@ function customizedMessage(){
         h1bIsExpiring: false, 
         serviceCenter: "N/A", 
         processingTime: "N/A", 
-        isFurtherInquiry: false
+        isFurtherInquiry: false,
+        //new input additions 01-08-2025
+        isOtherPDApproved: false,
+        isFilingFeeCredit: false,
+        filingFeeCredit: 0,
+        hasComplained: false
     };
+
+    //constants
+
+    const filingFee = 715;
+
+    const asylumFee = 300;
+
+    const ppFee = 2805;
+
+    const totalFilingFees = filingFee + asylumFee;
     
     function updateAllCaseDetails(){
-        //unpack all the details
-        let {isCaseSpecific,
-            usersCase, 
-            hasPaid, 
-            remainingAttorneyFee, 
-            isPp, 
-            ppInfoIsProvided, 
-            isInsideUS, 
-            anotherPriorityDate, 
-            exactPriorityDate,
-            countryOfBirth, 
-            priorityDateIsCurrent, 
-            h1bIsExpiring, 
-            serviceCenter, 
-            processingTime, 
-            isFurtherInquiry} = finalDetails; 
+
         //case specific
 
         function updateCSDetails(){
             const caseSpecificInput = prompt("caseSpecific?(Y or N)").toLowerCase();
-            isCaseSpecific = caseSpecificInput === "y";
-            if(isCaseSpecific){
+            finalDetails.isCaseSpecific = caseSpecificInput === "y";
+            if(finalDetails.isCaseSpecific){
                 usersCase = prompt("Please enter the case(NIW or EB1A)");
             }
         };
 
         updateCSDetails();
 
+        function updateClientComplaintDetails(){
+            const hasComplainedInput = prompt("Has the client complained before?(Y/N)");
+            finalDetails.hasComplained = hasComplainedInput == "y";
+        }
+
+        updateClientComplaintDetails();
+
         //remaining atty fee
-        function updateAttyFeeDetails(){
+        function updateAttyFeeAndFFCreditDetails(){
             const attyFeePaidInput = prompt("Remaining fee paid? (Y or N)").toLowerCase();
-            hasPaid = attyFeePaidInput === "y";
-            if(!hasPaid){
-                remainingAttorneyFee = Number(prompt("How much?"));
+            finalDetails.hasPaid = attyFeePaidInput === "y";
+            if(!finalDetails.hasPaid){
+                finalDetails.remainingAttorneyFee = Number(prompt("How much?"));
+            }
+            const isFilingFeeCreditInput = prompt("Does client have FF credit?(Y/N)").toLowerCase;
+            finalDetails.isFilingFeeCredit = isFilingFeeCreditInput == "y";
+            if(finalDetails.isFilingFeeCredit){
+                finalDetails.filingFeeCredit = Number(prompt("How much?"));
             }
         };
 
-        updateAttyFeeDetails();
+        updateAttyFeeAndFFCreditDetails();
 
         //further inquiry
         function updateFurtherInquiryDetails(){
             const furtherInquiryInput = prompt("Unresolved inquiries?(Y or N)").toLowerCase();
-            isFurtherInquiry = furtherInquiryInput === "y";
+            finalDetails.isFurtherInquiry = furtherInquiryInput === "y";
         };
 
         updateFurtherInquiryDetails();
@@ -101,32 +113,34 @@ function customizedMessage(){
         //Premium Processing
         function updatePPDetails(){
             const ppInput = prompt("Premium Processing? (Y or N)").toLowerCase();
-            isPp = ppInput === "y";
+            finalDetails.isPp = ppInput === "y";
 
             // let finalRelevantPPDetails = {isPp, ppInfoIsProvided, isInsideUS, anotherPriorityDate, exactPriorityDate, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime};
             
             function updateEB1APPWarningDetails (){
                 //all the info we need for posting EB1A warning msg
-                countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
+                finalDetails.countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
                 const isInsideUSInput = prompt('Is the client inside the US? (y/n)').toLowerCase();
-                isInsideUS = isInsideUSInput == "y";
+                finalDetails.isInsideUS = isInsideUSInput == "y";
                 //if the client is inside the US, ask for their current visa status
-                if(isInsideUS){
+                if(finalDetails.isInsideUS){
                     let h1bIsExpiringInput = prompt('Is h1b? If so is it expiring within 1.5 years? (y/n)').toLowerCase();
-                    h1bIsExpiring = h1bIsExpiringInput == "y";
+                    finalDetails.h1bIsExpiring = h1bIsExpiringInput == "y";
                 }
-                serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
-                processingTime = prompt("How many months?");
-                if(countryOfBirth == "China" || countryOfBirth == "India"){
+                finalDetails.serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
+                finalDetails.processingTime = prompt("How many months?");
+                if(finalDetails.countryOfBirth == "China" || finalDetails.countryOfBirth == "India"){
                     let priorityDateInput = prompt("Is there a current PD?(y/n)").toLowerCase();
-                    priorityDateIsCurrent = priorityDateInput == "y";
+                    finalDetails.priorityDateIsCurrent = priorityDateInput == "y";
                     //if it's not current, ask for if there is another PD
-                    if(!priorityDateIsCurrent){
+                    if(!finalDetails.priorityDateIsCurrent){
                         const anotherPriorityDateInput = prompt("Another PD?(Y or N)").toLowerCase();
-                        anotherPriorityDate = anotherPriorityDateInput == "y";
-                        //if there is another PD, ask for the date and return all details collected so far.
-                        if(anotherPriorityDate){
-                            exactPriorityDate = prompt("Please enter the PD(yyyy-mm-dd)");
+                        finalDetails.anotherPriorityDate = anotherPriorityDateInput == "y";
+                        //if there is another PD, ask for the date and whether that other PD has been approved, update them accordingly
+                        if(finalDetails.anotherPriorityDate){
+                            finalDetails.exactPriorityDate = prompt("Please enter the PD(yyyy-mm-dd)");
+                            const isOtherPDApprovedInput = prompt("Is the PD approved?(Y/N):").toLowerCase();
+                            finalDetails.isOtherPDApproved = isOtherPDApprovedInput == "y";
                         }
                         //if there isn't another PD, update is finished.
                     }
@@ -135,16 +149,16 @@ function customizedMessage(){
                 //if the client is not from China or India, update is finished.
             };
 
-            if(isPp){
-                if(usersCase == ""){
-                    usersCase = prompt('Please enter the case(NIW or EB1A)');
+            if(finalDetails.isPp){
+                if(finalDetails.usersCase == ""){
+                    finalDetails.usersCase = prompt('Please enter the case(NIW or EB1A)');
                     //if the case is EB1A, get details.
-                    if(usersCase == "EB1A"){
+                    if(finalDetails.usersCase == "EB1A"){
                         //see if pp info has already been provided
                         const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
-                        ppInfoIsProvided = ppInfoProvidedInput == "y";
+                        finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
                         //dictate whether further updates are needed.
-                        if(!ppInfoIsProvided){
+                        if(!finalDetails.ppInfoIsProvided){
                             updateEB1APPWarningDetails();
                         }
                         //else the update is finished
@@ -153,12 +167,12 @@ function customizedMessage(){
                 }
 
                 else{
-                    if(usersCase == "EB1A"){
+                    if(finalDetails.usersCase == "EB1A"){
                         //see if pp info has already been provided
                         const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
-                        ppInfoIsProvided = ppInfoProvidedInput == "y";
+                        finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
                         //dictate whether the next questions are asked
-                        if(!ppInfoIsProvided){
+                        if(!finalDetails.ppInfoIsProvided){
                             updateEB1APPWarningDetails();
                         }
                         //else the update is finished
@@ -169,17 +183,14 @@ function customizedMessage(){
         };
 
         updatePPDetails();
-
-        //re-assign all the details back to final details
-        finalDetails = {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, ppInfoIsProvided, isInsideUS, anotherPriorityDate, exactPriorityDate, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry};
     };
 
     updateAllCaseDetails();
 
     const handleCaseDetails = {
-        handleCaseSpecific: function (isCaseSpecific, usersCase){
-            if (isCaseSpecific){
-                return " "+usersCase+" "; 
+        handleCaseSpecific: function (){
+            if (finalDetails.isCaseSpecific){
+                return " "+finalDetails.usersCase+" "; 
             }
             else{
                 return " ";
@@ -187,8 +198,8 @@ function customizedMessage(){
         },
 
         handleUnpaidAttyFee: {
-            firstPlace: function(hasPaid){
-                if(!hasPaid){
+            firstPlace: function(){
+                if(!finalDetails.hasPaid){
                     return " and the remaining attorney fee are both ";
                 }
                 else{
@@ -196,9 +207,9 @@ function customizedMessage(){
                 }
             },
         
-            secondPlace: function(hasPaid, remainingAttorneyFee){
-                if(!hasPaid){
-                    return `$${addComma(remainingAttorneyFee)} remaining attorney fee + `;
+            secondPlace: function(){
+                if(!finalDetails.hasPaid){
+                    return `$${addComma(finalDetails.remainingAttorneyFee)} remaining attorney fee + `;
                 }
                 else{
                     return '';
@@ -207,8 +218,49 @@ function customizedMessage(){
         },
 
         handlePP: {
-            firstPlace: function(isPp, usersCase, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime){
-                const firstPlaceNIWPP = `
+            //addressing the PP Warning Part
+            ppWarnings: function(){
+                const handlePortedPD = {
+                    placeHolder1: function (){
+                        if(!finalDetails.anotherPriorityDate){
+                            return ", ";
+                        }
+    
+                        else{
+                            if(finalDetails.isOtherPDApproved){
+                                return ` (in your case, your priority date will be the one ported through your approved NIW, which is ${finalDetails.exactPriorityDate}), `;
+                            }
+
+                            else{
+                                return ` (in your case, your priority date will be the one ported through your NIW once approved, which is${finalDetails.exactPriorityDate}), `;
+                            }
+                        }
+                    },
+
+                    placeHolder2: function(){
+                        if(!finalDetails.anotherPriorityDate){
+                            return ". ";
+                        }
+
+                        else{
+                            return " until your priority date becomes current. ";
+                        }
+                    }
+                }
+                function handleVisaStatus(){
+                    if(finalDetails.isInsideUS && finalDetails.h1bIsExpiring){
+                        return `<p>Please note that it remains very important to maintain your non-immigrant status throughout the whole process. For instance, if you require an I-140 approval to extend your H-1B beyond the six-year cap and you do not have other I-140 pending/approved, you may still wish to request premium processing. If this applies, please update us as to your plans regarding your nonimmigrant status and we can advise accordingly.
+                                </p><p><br></p>`;
+                    }
+                    else if (finalDetails.isInsideUS && (!finalDetails.h1bIsExpiring)){
+                        return `<p>Please note that it remains very important to maintain your non-immigrant status throughout the whole process.</p><p><br></p>`;
+                    }
+                    else if ((!finalDetails.isInsideUS)){
+                        return "";
+                    }
+                }
+                //For info not provided
+                const ppWarningNIW = `
                 <P>Additionally, we noticed in your client record that you plan to file the I-140 with a request for premium processing at the same time. If so, an additional 
                 $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting February 26, 2024).</p>
                 <p>&nbsp;</p>
@@ -223,15 +275,7 @@ function customizedMessage(){
                 <p>&nbsp;</p>                
                 `;
 
-                const firstPlaceNIWandEB1APPInfoProvided = `
-                <P>Additionally, as you plan to file the I-140 with a request for premium processing at the same time, an additional 
-                $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting February 26, 2024).</p>
-                <p>&nbsp;</p>
-                `;
-
-                // const firstPlaceEB1A
-
-                const firstPlaceEB1APPCNNotCurrent = `
+                const ppWarningEB1ACINotCurrent = `
                 <p>In addition, we noticed in your client record that you plan to file I-140 with request of premium processing at the 
                 same time. If so, an additional $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to  
                 $2,805 starting February 26, 2024). However, we would like to update you regarding your plan to file your EB1A using 
@@ -243,21 +287,20 @@ function customizedMessage(){
                 likely to issue RFEs just to give them more time. As such, you should weigh the benefit of having your case adjudicated in 
                 15 business days against the chance of receiving RFE/NOIDs. Our hope is that this is a temporary trend, and by waiting to 
                 have your case adjudicated under regular processing you will avoid the tougher standard of adjudication.</p><p><br></p><p>
-                2.&nbsp; EB-1 priority dates are retrogressed for ${countryOfBirth}, without a clear indication of precisely when priority 
+                2.&nbsp; EB-1 priority dates are retrogressed for ${finalDetails.countryOfBirth}, without a clear indication of precisely when priority 
                 dates will again be current. As such, even if you receive an I-140 approval on the 15 business days premium processing 
-                timeline, you would not be able to take action based on your I-140 approval. Whether or not you file using premium 
-                processing, your priority date is set by your date of filing, not by your date of approval. As such, your priority date is 
+                timeline, you would not be able to take action based on your I-140 approval${handlePortedPD.placeHolder2()}Whether or not you file using premium 
+                processing, your priority date is set by your date of filing${handlePortedPD.placeHolder1()} not by your date of approval. As such, your priority date is 
                 not impacted by your decision to use either Premium or Regular Processing.</p><p><br></p><p>You can choose to file using 
                 Premium Processing at a later date should retrogression end before a decision has been reached on your I-140 petition. For 
-                your information, without premium processing, the EB1A processing time at ${serviceCenter} is around ${processingTime} 
-                months according to the USCIS processing time website.&nbsp;</p><p><br></p><p>Please note that it remains very important to 
-                maintain your non-immigrant status throughout the whole process.${handleH1bExpiration(h1bIsExpiring)}</p><p><br></p><p>Please confirm if you would like to 
+                your information, without premium processing, the EB1A processing time at ${finalDetails.serviceCenter} is around ${finalDetails.processingTime} 
+                months according to the USCIS processing time website.&nbsp;</p><p><br></p>${handleVisaStatus()}<p>Please confirm if you would like to 
                 proceed with regular processing or premium processing, and <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before filing so that the actual filing plan we proceed with is consistent with your preference.</strong>
                 </p>
                 <p>&nbsp;</p>                
                 `;
 
-                const firstPlaceRoWandCNCurrent = `
+                const ppWarningEB1ACICurrentOrROW = `
                 <p>In addition, we noticed in your client record that you plan to file I-140 with request of premium processing 
                 at the same time. If so, an additional $2,805 for the premium processing fee is also due (USCIS increased the 
                 fee from $2,500 to $2,805 starting February 26, 2024). However, we would like to update you regarding your plan 
@@ -265,56 +308,67 @@ function customizedMessage(){
                 Regular Processing a better option for your case at this time.</p><p><br></p><p><span style="text-decoration: 
                 underline;" data-mce-style="text-decoration: underline;"><em><strong>If we do not consider other case-specific 
                 factors, EB1A cases filed with premium processing have a lower approval rate and a higher RFE rate based on our 
-                most recent observation.</strong></em></span> Since USCIS must take action on the EB1A case within 15 days of 
+                most recent observation.</strong></em></span> Since USCIS must take action on the EB1A case within 15 business days of 
                 receiving the premium processing request, it seems that they are more likely to issue RFEs just to give them 
                 more time. As such, you should weigh the benefit of having your case adjudicated in 15 business days against 
                 the chance of receiving RFE/NOIDs. Our hope is that this is a temporary trend, and by waiting to have your 
                 case adjudicated under regular processing you will avoid the tougher standard of adjudication.</p><p><br></p>
-                <p>For your information, without premium processing, the EB1A processing time at ${serviceCenter} is 
-                around ${processingTime} according to the USCIS processing 
+                <p>For your information, without premium processing, the EB1A processing time at ${finalDetails.serviceCenter} is 
+                around ${finalDetails.processingTime} according to the USCIS processing 
                 time website.&nbsp;</p><p><br></p><p>Please note that it remains very important to maintain your non-immigrant 
-                status throughout the whole process. ${handleH1bExpiration(h1bIsExpiring)}</p><p><br></p><p>Please confirm if you would like to proceed with regular processing or 
+                status throughout the whole process. ${handleH1bExpiration()}</p><p><br></p><p>Please confirm if you would like to proceed with regular processing or 
                 premium processing, and <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">
                 ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to 
                 avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before 
                 filing so that the actual filing plan we proceed with is consistent with your preference.</strong></p>
                 <p>&nbsp;</p>
                 `;
-
                 
+                //For info provided
 
-                function handleH1bExpiration(h1bIsExpiring){
-                    if (h1bIsExpiring){
-                        return `&nbsp; For instance, if you require an I-140 approval to extend your H-1B beyond the six-year cap and 
-                        you do not have other I-140 pending/approved, you may still wish to request premium processing. If this 
-                        applies, please update us as to your plans regarding your nonimmigrant status and we can advise 
-                        accordingly.`;
-                    }
-                    else{
-                        return "";
-                    }
-                }
+                const ppWarningInfoProvided = `
+                <P>Additionally, as you plan to file the I-140 with a request for premium processing at the same time, an additional 
+                $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting February 26, 2024).</p>
+                <p>&nbsp;</p>
+                `;
 
-                if(!isPp){
+
+                //if no pp indicated
+
+                if(!finalDetails.isPp){
                     return "";
                 }
-
-                else if(usersCase == "NIW"){
-                    if(!ppInfoIsProvided){
-                        return firstPlaceNIWPP;
+                //if NIW
+                else if(finalDetails.usersCase == "NIW"){
+                    //info has not been provided
+                    if(!finalDetails.ppInfoIsProvided){
+                        return ppWarningNIW;
                     }
-                    else if(ppInfoIsProvided){
-                        return firstPlaceNIWandEB1APPInfoProvided;
+                    //info has been provided
+                    else if(finalDetails.ppInfoIsProvided){
+                        return ppWarningInfoProvided;
                     }
                 }
-
-                else if(usersCase == "EB1A"){
-                    if(ppInfoIsProvided){
-                        return firstPlaceNIWandEB1APPInfoProvided;
+                //if EB1A
+                else if(finalDetails.usersCase == "EB1A"){
+                    //if info provided
+                    if(finalDetails.ppInfoIsProvided){
+                        return ppWarningInfoProvided;
                     }
-
-                    else if((!ppInfoIsProvided)){
-                        //code here
+                    //if info not provided
+                    else if((!finalDetails.ppInfoIsProvided)){
+                        //if from ROW, does not matter their PD is current or not, canned msg does not address PD at all. 
+                        if(finalDetails.countryOfBirth == "ROW"){
+                            return ppWarningEB1ACICurrentOrROW;
+                        }
+                        //if PD Current, it DOES NOT matter which country they are from
+                        else if(finalDetails.priorityDateIsCurrent){
+                            return ppWarningEB1ACICurrentOrROW;
+                        }
+                        //If PD IS NOT CURRENT
+                        else if((!finalDetails.priorityDateIsCurrent) && ["China", "India"].includes(finalDetails.countryOfBirth)){
+                            return ppWarningEB1ACINotCurrent;
+                        }
                     }
                     
                 }
@@ -333,48 +387,89 @@ function customizedMessage(){
 */
             },
 
-            secondPlace: function(isPp){
-                const secondPlaceNoPP = `
-                <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(1015+remainingAttorneyFee)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace(hasPaid,remainingAttorneyFee)}$715 filing fee + $300 asylum program fee). Please follow the instructions attached to the invoice email and make a payment at your earliest convenience.
+            invoiceParagraph: function(){
+                function handleInfoProvided(){
+                    if (ppInfoIsProvided){
+                        return "";
+                    }
+
+                    else{
+                        return ` <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">Note if you will proceed with regular 
+                        processing first, you do not need to pay the premium processing fee now.</span>`;
+                    }
+                };
+
+                function handleFFCredit(){
+                    if((!finalDetails.isFilingFeeCredit)){
+                        return "";
+                    }
+                    else{
+                        return ` - $${addComma(filingFeeCredit)} ${prompt("overpayment or discount?")}`;
+                    }
+                }
+
+                const noPPInvoice = `
+                <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(totalFilingFees+finalDetails.remainingAttorneyFee-finalDetails.filingFeeCredit)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace()}$${filingFee} filing fee + $${asylumFee} asylum program fee${handleFFCredit()}). Please follow the instructions attached to the invoice email and make a payment at your earliest convenience.
                 </p>
                 <p>&nbsp;</p>
                 `;
-                const secondPlacePP = `
-                <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(1015+remainingAttorneyFee)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace(hasPaid,remainingAttorneyFee)}$715 filing fee + $300 asylum program fee), and a separate invoice email for the premium processing fee of $2,805. We accept payments via Zelle, wire transfer, counter deposit, and credit card, etc. Please follow the instructions attached to the invoice email and leave a message after you have initiated the payment(s). <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">Note if you will proceed with regular processing first, you do not need to pay the premium processing fee now.</span>
+
+                const ppInvoice = `
+                <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(totalFilingFees+finalDetails.remainingAttorneyFee-finalDetails.filingFeeCredit)} 
+                (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace()}$${filingFee} filing fee + $${asylumFee} asylum program fee${handleFFCredit()}), 
+                and a separate invoice email for 
+                the premium processing fee of $${addComma(ppFee)}. We accept payments via Zelle, wire transfer, counter deposit, and credit card, etc. Please follow 
+                the instructions attached to the invoice email and leave a message after you have initiated the payment(s).${handleInfoProvided()}
                 </p>
                 <p>&nbsp;</p>
                 `;
-                if (isPp){
-                    return secondPlacePP;
+
+
+                if (finalDetails.isPp){
+                    return ppInvoice;
                 }
 
                 else{
-                    return secondPlaceNoPP;
+                    return noPPInvoice;
                 }
                 
             }
 
         },
 
-        handleFurtherInquiry: function(isFurtherInquiry){
+        handleFurtherInquiry: function(){
             const furtherInquiryText = `
             <p>Please note that we must receive the required fees before we can file the case.</p>
             <p>&nbsp;</p>
             <p>We will respond to you further as soon as possible. Thank you!</p>
             `;
-            if(isFurtherInquiry){
+            if(finalDetails.isFurtherInquiry){
                 return furtherInquiryText;
             }
             else{
                 return "<p>Please note that we must receive the required fees before we can file the case. Thank you!</p>";
             }
+        },
+
+        handleComplaints: function(){
+            if(finalDetails.hasComplained){
+                return `<p>Thank you for your message, we will respond further as soon as possible.</p>
+                        <p>&nbsp;</p>`;
+            }
+            else{
+                return "";
+            }
         }
     };
 
     const customizedParagraphs = {
+        part0:`
+        ${handleCaseDetails.handleComplaints}
+        `,
+
         part1:`
-        <p>Now that your${handleCaseDetails.handleCaseSpecific(finalDetails.isCaseSpecific, finalDetails.usersCase)}petition letter is finalized, the${handleCaseDetails.handleCaseSpecific(finalDetails.isCaseSpecific, finalDetails.usersCase)}I-140 filing 
-        fee${handleCaseDetails.handleUnpaidAttyFee.firstPlace(finalDetails.hasPaid)}required. Instead of mailing a check, please make your payment online using options such as Zelle, wire 
+        <p>Now that your${handleCaseDetails.handleCaseSpecific()}petition letter is finalized, the${handleCaseDetails.handleCaseSpecific()}I-140 filing 
+        fee${handleCaseDetails.handleUnpaidAttyFee.firstPlace()}required. Instead of mailing a check, please make your payment online using options such as Zelle, wire 
         transfer, counter deposit, e-check, Stripe, or PayPal, etc.</p>
         <p>&nbsp;</p>
         <p>We'd like to remind you that as shown in our announcements, the newly released final rule on USCIS fee increases has taken effect on April 1, 2024. Petitions 
@@ -389,10 +484,9 @@ function customizedMessage(){
         <p>&nbsp;</p>
         `,
 
-        part2: `${handleCaseDetails.handlePP.firstPlace(finalDetails.isPp, finalDetails.usersCase, finalDetails.countryOfBirth, finalDetails.priorityDateIsCurrent, 
-            finalDetails.h1bIsExpiring, finalDetails.serviceCenter, finalDetails.processingTime)}`,
+        part2: `${handleCaseDetails.handlePP.ppWarnings()}`,
         
-        part3: `${handleCaseDetails.handlePP.secondPlace(finalDetails.isPp)}`,
+        part3: `${handleCaseDetails.handlePP.invoiceParagraph()}`,
 
         part4: `
         <p>Please note that Stripe charges a <strong>2% service fee</strong> for all credit/debit card transactions, and PayPal charges a <strong>2.5% service fee</strong> for all 
@@ -408,7 +502,7 @@ function customizedMessage(){
         <p>&nbsp;</p>
         `,
 
-        part5: `${handleCaseDetails.handleFurtherInquiry(finalDetails.isFurtherInquiry)}`
+        part5: `${handleCaseDetails.handleFurtherInquiry()}`
                               
     };
 
