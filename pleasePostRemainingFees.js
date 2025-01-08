@@ -32,99 +32,149 @@ function addComma(number){
 }
 
 function customizedMessage(){
-    function getAllCaseDetails(){
+    let finalDetails = {
+        isCaseSpecific: false,
+        usersCase: "", 
+        hasPaid: false, 
+        remainingAttorneyFee: 0, 
+        isPp: false, 
+        ppInfoIsProvided: false, 
+        isInsideUS: false, 
+        anotherPriorityDate: false, 
+        exactPriorityDate: "N/A",
+        countryOfBirth: "N/A", 
+        priorityDateIsCurrent: false, 
+        h1bIsExpiring: false, 
+        serviceCenter: "N/A", 
+        processingTime: "N/A", 
+        isFurtherInquiry: false
+    };
+    
+    function updateAllCaseDetails(){
+        //unpack all the details
+        let {isCaseSpecific,
+            usersCase, 
+            hasPaid, 
+            remainingAttorneyFee, 
+            isPp, 
+            ppInfoIsProvided, 
+            isInsideUS, 
+            anotherPriorityDate, 
+            exactPriorityDate,
+            countryOfBirth, 
+            priorityDateIsCurrent, 
+            h1bIsExpiring, 
+            serviceCenter, 
+            processingTime, 
+            isFurtherInquiry} = finalDetails; 
         //case specific
 
-        function getCSDetails(){
+        function updateCSDetails(){
             const caseSpecificInput = prompt("caseSpecific?(Y or N)").toLowerCase();
-            const isCaseSpecific = caseSpecificInput === "y";
-            let usersCase = "";
+            isCaseSpecific = caseSpecificInput === "y";
             if(isCaseSpecific){
                 usersCase = prompt("Please enter the case(NIW or EB1A)");
             }
-
-            return {isCaseSpecific, usersCase};
-
         };
 
-        const CSDetails = getCSDetails();
-
-        const isCaseSpecific = CSDetails.isCaseSpecific;
-
-        let usersCase = CSDetails.usersCase;
+        updateCSDetails();
 
         //remaining atty fee
-        function getAttyFeeDetails(){
+        function updateAttyFeeDetails(){
             const attyFeePaidInput = prompt("Remaining fee paid? (Y or N)").toLowerCase();
-            const hasPaid = attyFeePaidInput === "y";
-            let remainingAttorneyFee = 0;
+            hasPaid = attyFeePaidInput === "y";
             if(!hasPaid){
                 remainingAttorneyFee = Number(prompt("How much?"));
             }
-
-            return {hasPaid, remainingAttorneyFee};
         };
 
-        const {hasPaid, remainingAttorneyFee} = getAttyFeeDetails();
+        updateAttyFeeDetails();
 
         //further inquiry
-        function getFurtherInquiryDetails(){
+        function updateFurtherInquiryDetails(){
             const furtherInquiryInput = prompt("Unresolved inquiries?(Y or N)").toLowerCase();
-            const isFurtherInquiry = furtherInquiryInput === "y";
-
-            return isFurtherInquiry;
+            isFurtherInquiry = furtherInquiryInput === "y";
         };
 
-        const isFurtherInquiry = getFurtherInquiryDetails();
+        updateFurtherInquiryDetails();
 
         //Premium Processing
-        function getPPDetails(){
+        function updatePPDetails(){
             const ppInput = prompt("Premium Processing? (Y or N)").toLowerCase();
-            const isPp = ppInput === "y";
-            let countryOfBirth = "N/A";
-            let priorityDateIsCurrent = "N/A";
-            let h1bIsExpiring = "N/A";
-            let serviceCenter = "N/A";
-            let processingTime = "N/A";
+            isPp = ppInput === "y";
+
+            // let finalRelevantPPDetails = {isPp, ppInfoIsProvided, isInsideUS, anotherPriorityDate, exactPriorityDate, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime};
+            
+            function updateEB1APPWarningDetails (){
+                //all the info we need for posting EB1A warning msg
+                countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
+                const isInsideUSInput = prompt('Is the client inside the US? (y/n)').toLowerCase();
+                isInsideUS = isInsideUSInput == "y";
+                //if the client is inside the US, ask for their current visa status
+                if(isInsideUS){
+                    let h1bIsExpiringInput = prompt('Is h1b? If so is it expiring within 1.5 years? (y/n)').toLowerCase();
+                    h1bIsExpiring = h1bIsExpiringInput == "y";
+                }
+                serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
+                processingTime = prompt("How many months?");
+                if(countryOfBirth == "China" || countryOfBirth == "India"){
+                    let priorityDateInput = prompt("Is there a current PD?(y/n)").toLowerCase();
+                    priorityDateIsCurrent = priorityDateInput == "y";
+                    //if it's not current, ask for if there is another PD
+                    if(!priorityDateIsCurrent){
+                        const anotherPriorityDateInput = prompt("Another PD?(Y or N)").toLowerCase();
+                        anotherPriorityDate = anotherPriorityDateInput == "y";
+                        //if there is another PD, ask for the date and return all details collected so far.
+                        if(anotherPriorityDate){
+                            exactPriorityDate = prompt("Please enter the PD(yyyy-mm-dd)");
+                        }
+                        //if there isn't another PD, update is finished.
+                    }
+                    //if it's current, update is finished.
+                }
+                //if the client is not from China or India, update is finished.
+            };
+
             if(isPp){
                 if(usersCase == ""){
                     usersCase = prompt('Please enter the case(NIW or EB1A)');
+                    //if the case is EB1A, get details.
                     if(usersCase == "EB1A"){
-                        countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
-                        let h1bIsExpiringInput = prompt('Is h1b? If so is it expiring within 1.5 years? (y/n)').toLowerCase();
-                        h1bIsExpiring = h1bIsExpiringInput == "y";
-                        serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
-                        processingTime = prompt("How many months?");
-                        if(countryOfBirth == "China" || countryOfBirth == "India"){
-                            let priorityDateInput = prompt("Is there a current PD?(y/n)").toLowerCase();
-                            priorityDateIsCurrent = priorityDateInput == "y";
+                        //see if pp info has already been provided
+                        const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
+                        ppInfoIsProvided = ppInfoProvidedInput == "y";
+                        //dictate whether further updates are needed.
+                        if(!ppInfoIsProvided){
+                            updateEB1APPWarningDetails();
                         }
-                    }
+                        //else the update is finished
+
+                    };                
                 }
+
                 else{
                     if(usersCase == "EB1A"){
-                        countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
-                        let h1bIsExpiringInput = prompt('Is h1b? If so is it expiring within 1.5 years? (y/n)').toLowerCase();
-                        h1bIsExpiring = h1bIsExpiringInput == "y";
-                        serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
-                        processingTime = prompt("How many months?");
-                        if(countryOfBirth == "China" || countryOfBirth == "India"){
-                            let priorityDateInput = prompt("Is there a current PD?(y/n)").toLowerCase();
-                            priorityDateIsCurrent = priorityDateInput == "y";
+                        //see if pp info has already been provided
+                        const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
+                        ppInfoIsProvided = ppInfoProvidedInput == "y";
+                        //dictate whether the next questions are asked
+                        if(!ppInfoIsProvided){
+                            updateEB1APPWarningDetails();
                         }
+                        //else the update is finished
                     }
-                }
-            }
-            return {isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime};
+                };
+            };
+            //else the update is finished
         };
 
-        const {isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime} = getPPDetails();
-        
-        return {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, 
-                countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry}
+        updatePPDetails();
+
+        //re-assign all the details back to final details
+        finalDetails = {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, ppInfoIsProvided, isInsideUS, anotherPriorityDate, exactPriorityDate, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry};
     };
 
-    const {isCaseSpecific, usersCase, hasPaid, remainingAttorneyFee, isPp, countryOfBirth, priorityDateIsCurrent, h1bIsExpiring, serviceCenter, processingTime, isFurtherInquiry} = getAllCaseDetails();
+    updateAllCaseDetails();
 
     const handleCaseDetails = {
         handleCaseSpecific: function (isCaseSpecific, usersCase){
@@ -172,6 +222,14 @@ function customizedMessage(){
                 Immigrant Visa Processing” under the Visa FAQ tab.</p>
                 <p>&nbsp;</p>                
                 `;
+
+                const firstPlaceNIWandEB1APPInfoProvided = `
+                <P>Additionally, as you plan to file the I-140 with a request for premium processing at the same time, an additional 
+                $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting February 26, 2024).</p>
+                <p>&nbsp;</p>
+                `;
+
+                // const firstPlaceEB1A
 
                 const firstPlaceEB1APPCNNotCurrent = `
                 <p>In addition, we noticed in your client record that you plan to file I-140 with request of premium processing at the 
@@ -223,6 +281,8 @@ function customizedMessage(){
                 <p>&nbsp;</p>
                 `;
 
+                
+
                 function handleH1bExpiration(h1bIsExpiring){
                     if (h1bIsExpiring){
                         return `&nbsp; For instance, if you require an I-140 approval to extend your H-1B beyond the six-year cap and 
@@ -235,10 +295,30 @@ function customizedMessage(){
                     }
                 }
 
-                if (isPp && usersCase == "NIW"){
-                    return firstPlaceNIWPP;
+                if(!isPp){
+                    return "";
                 }
 
+                else if(usersCase == "NIW"){
+                    if(!ppInfoIsProvided){
+                        return firstPlaceNIWPP;
+                    }
+                    else if(ppInfoIsProvided){
+                        return firstPlaceNIWandEB1APPInfoProvided;
+                    }
+                }
+
+                else if(usersCase == "EB1A"){
+                    if(ppInfoIsProvided){
+                        return firstPlaceNIWandEB1APPInfoProvided;
+                    }
+
+                    else if((!ppInfoIsProvided)){
+                        //code here
+                    }
+                    
+                }
+/*
                 else if (isPp && usersCase == "EB1A" && ["China", "India"].includes(countryOfBirth) && (!priorityDateIsCurrent)){
                     return firstPlaceEB1APPCNNotCurrent;
                 }
@@ -250,6 +330,7 @@ function customizedMessage(){
                 else if(!isPp){
                     return "";
                 }
+*/
             },
 
             secondPlace: function(isPp){
@@ -292,8 +373,8 @@ function customizedMessage(){
 
     const customizedParagraphs = {
         part1:`
-        <p>Now that your${handleCaseDetails.handleCaseSpecific(isCaseSpecific, usersCase)}petition letter is finalized, the${handleCaseDetails.handleCaseSpecific(isCaseSpecific, usersCase)}I-140 filing 
-        fee${handleCaseDetails.handleUnpaidAttyFee.firstPlace(hasPaid)}required. Instead of mailing a check, please make your payment online using options such as Zelle, wire 
+        <p>Now that your${handleCaseDetails.handleCaseSpecific(finalDetails.isCaseSpecific, finalDetails.usersCase)}petition letter is finalized, the${handleCaseDetails.handleCaseSpecific(finalDetails.isCaseSpecific, finalDetails.usersCase)}I-140 filing 
+        fee${handleCaseDetails.handleUnpaidAttyFee.firstPlace(finalDetails.hasPaid)}required. Instead of mailing a check, please make your payment online using options such as Zelle, wire 
         transfer, counter deposit, e-check, Stripe, or PayPal, etc.</p>
         <p>&nbsp;</p>
         <p>We'd like to remind you that as shown in our announcements, the newly released final rule on USCIS fee increases has taken effect on April 1, 2024. Petitions 
@@ -308,10 +389,10 @@ function customizedMessage(){
         <p>&nbsp;</p>
         `,
 
-        part2: `${handleCaseDetails.handlePP.firstPlace(isPp, usersCase, countryOfBirth, priorityDateIsCurrent, 
-                h1bIsExpiring, serviceCenter, processingTime)}`,
+        part2: `${handleCaseDetails.handlePP.firstPlace(finalDetails.isPp, finalDetails.usersCase, finalDetails.countryOfBirth, finalDetails.priorityDateIsCurrent, 
+            finalDetails.h1bIsExpiring, finalDetails.serviceCenter, finalDetails.processingTime)}`,
         
-        part3: `${handleCaseDetails.handlePP.secondPlace(isPp)}`,
+        part3: `${handleCaseDetails.handlePP.secondPlace(finalDetails.isPp)}`,
 
         part4: `
         <p>Please note that Stripe charges a <strong>2% service fee</strong> for all credit/debit card transactions, and PayPal charges a <strong>2.5% service fee</strong> for all 
@@ -327,9 +408,11 @@ function customizedMessage(){
         <p>&nbsp;</p>
         `,
 
-        part5: `${handleCaseDetails.handleFurtherInquiry(isFurtherInquiry)}`
+        part5: `${handleCaseDetails.handleFurtherInquiry(finalDetails.isFurtherInquiry)}`
                               
     };
+
+    //Final Assembly of the Message
 
     let customizedMessage = "";
 
