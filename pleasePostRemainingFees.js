@@ -51,6 +51,7 @@ function customizedMessage(){
         //new input additions 01-08-2025
         isOtherPDApproved: false,
         isFilingFeeCredit: false,
+        filingFeeCreditType:"N/A",
         filingFeeCredit: 0,
         hasComplained: false
     };
@@ -73,7 +74,7 @@ function customizedMessage(){
             const caseSpecificInput = prompt("caseSpecific?(Y or N)").toLowerCase();
             finalDetails.isCaseSpecific = caseSpecificInput === "y";
             if(finalDetails.isCaseSpecific){
-                usersCase = prompt("Please enter the case(NIW or EB1A)");
+                finalDetails.usersCase = prompt("Please enter the case(NIW or EB1A)");
             }
         };
 
@@ -93,9 +94,10 @@ function customizedMessage(){
             if(!finalDetails.hasPaid){
                 finalDetails.remainingAttorneyFee = Number(prompt("How much?"));
             }
-            const isFilingFeeCreditInput = prompt("Does client have FF credit?(Y/N)").toLowerCase;
+            const isFilingFeeCreditInput = prompt("Does client have FF credit?(Y/N)").toLowerCase();
             finalDetails.isFilingFeeCredit = isFilingFeeCreditInput == "y";
             if(finalDetails.isFilingFeeCredit){
+                finalDetails.filingFeeCreditType = prompt("What type of credit? (overpayment or discount)");
                 finalDetails.filingFeeCredit = Number(prompt("How much?"));
             }
         };
@@ -104,6 +106,10 @@ function customizedMessage(){
 
         //further inquiry
         function updateFurtherInquiryDetails(){
+            //if complained before, do skip this question
+            if(finalDetails.hasComplained){
+                return;
+            }
             const furtherInquiryInput = prompt("Unresolved inquiries?(Y or N)").toLowerCase();
             finalDetails.isFurtherInquiry = furtherInquiryInput === "y";
         };
@@ -150,13 +156,13 @@ function customizedMessage(){
             };
 
             if(finalDetails.isPp){
+                //see if pp info has already been provided
+                const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
+                finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
                 if(finalDetails.usersCase == ""){
                     finalDetails.usersCase = prompt('Please enter the case(NIW or EB1A)');
                     //if the case is EB1A, get details.
                     if(finalDetails.usersCase == "EB1A"){
-                        //see if pp info has already been provided
-                        const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
-                        finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
                         //dictate whether further updates are needed.
                         if(!finalDetails.ppInfoIsProvided){
                             updateEB1APPWarningDetails();
@@ -168,10 +174,6 @@ function customizedMessage(){
 
                 else{
                     if(finalDetails.usersCase == "EB1A"){
-                        //see if pp info has already been provided
-                        const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
-                        finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
-                        //dictate whether the next questions are asked
                         if(!finalDetails.ppInfoIsProvided){
                             updateEB1APPWarningDetails();
                         }
@@ -232,9 +234,9 @@ function customizedMessage(){
                             }
 
                             else{
-                                return ` (in your case, your priority date will be the one ported through your NIW once approved, which is${finalDetails.exactPriorityDate}), `;
+                                return ` (in your case, your priority date will be the one ported through your NIW once approved, which is ${finalDetails.exactPriorityDate}), `;
                             }
-                        }
+                        };
                     },
 
                     placeHolder2: function(){
@@ -244,9 +246,10 @@ function customizedMessage(){
 
                         else{
                             return " until your priority date becomes current. ";
-                        }
+                        };
                     }
-                }
+                };
+                
                 function handleVisaStatus(){
                     if(finalDetails.isInsideUS && finalDetails.h1bIsExpiring){
                         return `<p>Please note that it remains very important to maintain your non-immigrant status throughout the whole process. For instance, if you require an I-140 approval to extend your H-1B beyond the six-year cap and you do not have other I-140 pending/approved, you may still wish to request premium processing. If this applies, please update us as to your plans regarding your nonimmigrant status and we can advise accordingly.
@@ -257,8 +260,9 @@ function customizedMessage(){
                     }
                     else if ((!finalDetails.isInsideUS)){
                         return "";
-                    }
-                }
+                    };
+                };
+
                 //For info not provided
                 const ppWarningNIW = `
                 <P>Additionally, we noticed in your client record that you plan to file the I-140 with a request for premium processing at the same time. If so, an additional 
@@ -290,7 +294,7 @@ function customizedMessage(){
                 2.&nbsp; EB-1 priority dates are retrogressed for ${finalDetails.countryOfBirth}, without a clear indication of precisely when priority 
                 dates will again be current. As such, even if you receive an I-140 approval on the 15 business days premium processing 
                 timeline, you would not be able to take action based on your I-140 approval${handlePortedPD.placeHolder2()}Whether or not you file using premium 
-                processing, your priority date is set by your date of filing${handlePortedPD.placeHolder1()} not by your date of approval. As such, your priority date is 
+                processing, your priority date is set by your date of filing${handlePortedPD.placeHolder1()}not by your date of approval. As such, your priority date is 
                 not impacted by your decision to use either Premium or Regular Processing.</p><p><br></p><p>You can choose to file using 
                 Premium Processing at a later date should retrogression end before a decision has been reached on your I-140 petition. For 
                 your information, without premium processing, the EB1A processing time at ${finalDetails.serviceCenter} is around ${finalDetails.processingTime} 
@@ -315,8 +319,7 @@ function customizedMessage(){
                 case adjudicated under regular processing you will avoid the tougher standard of adjudication.</p><p><br></p>
                 <p>For your information, without premium processing, the EB1A processing time at ${finalDetails.serviceCenter} is 
                 around ${finalDetails.processingTime} according to the USCIS processing 
-                time website.&nbsp;</p><p><br></p><p>Please note that it remains very important to maintain your non-immigrant 
-                status throughout the whole process. ${handleH1bExpiration()}</p><p><br></p><p>Please confirm if you would like to proceed with regular processing or 
+                time website.&nbsp;</p><p><br></p>${handleVisaStatus()}<p>Please confirm if you would like to proceed with regular processing or 
                 premium processing, and <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">
                 ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to 
                 avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before 
@@ -347,7 +350,7 @@ function customizedMessage(){
                     //info has been provided
                     else if(finalDetails.ppInfoIsProvided){
                         return ppWarningInfoProvided;
-                    }
+                    };
                 }
                 //if EB1A
                 else if(finalDetails.usersCase == "EB1A"){
@@ -368,34 +371,31 @@ function customizedMessage(){
                         //If PD IS NOT CURRENT
                         else if((!finalDetails.priorityDateIsCurrent) && ["China", "India"].includes(finalDetails.countryOfBirth)){
                             return ppWarningEB1ACINotCurrent;
-                        }
-                    }
+                        };
+                    };
                     
-                }
-/*
-                else if (isPp && usersCase == "EB1A" && ["China", "India"].includes(countryOfBirth) && (!priorityDateIsCurrent)){
-                    return firstPlaceEB1APPCNNotCurrent;
-                }
-
-                else if (isPp && usersCase == "EB1A"){
-                    return firstPlaceRoWandCNCurrent;
-                }
-
-                else if(!isPp){
-                    return "";
-                }
-*/
+                };
             },
 
             invoiceParagraph: function(){
                 function handleInfoProvided(){
-                    if (ppInfoIsProvided){
+                    if (finalDetails.ppInfoIsProvided){
                         return "";
                     }
 
-                    else{
+                    else if(finalDetails.usersCase == "EB1A"){
                         return ` <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">Note if you will proceed with regular 
                         processing first, you do not need to pay the premium processing fee now.</span>`;
+                    }
+
+                    else if(finalDetails.usersCase == "NIW"){
+                        return ` <strong>If you will proceed with regular processing first, you do not need to pay the 
+                        premium processing fee now.</strong> 
+                        <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">Kindly ensure 
+                        that your filing plan in regards to premium processing under section 1 of client record is up-to-date 
+                        to avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan 
+                        well before filing so that the actual filing plan we proceed with is consistent with your preference.
+                        </strong>`;
                     }
                 };
 
@@ -404,9 +404,9 @@ function customizedMessage(){
                         return "";
                     }
                     else{
-                        return ` - $${addComma(filingFeeCredit)} ${prompt("overpayment or discount?")}`;
-                    }
-                }
+                        return ` - $${addComma(finalDetails.filingFeeCredit)} ${finalDetails.filingFeeCreditType}`;
+                    };
+                };
 
                 const noPPInvoice = `
                 <p>For your convenience, we have sent you an invoice email with the combined amount of $${addComma(totalFilingFees+finalDetails.remainingAttorneyFee-finalDetails.filingFeeCredit)} (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace()}$${filingFee} filing fee + $${asylumFee} asylum program fee${handleFFCredit()}). Please follow the instructions attached to the invoice email and make a payment at your earliest convenience.
@@ -448,7 +448,7 @@ function customizedMessage(){
             }
             else{
                 return "<p>Please note that we must receive the required fees before we can file the case. Thank you!</p>";
-            }
+            };
         },
 
         handleComplaints: function(){
@@ -456,15 +456,16 @@ function customizedMessage(){
                 return `<p>Thank you for your message, we will respond further as soon as possible.</p>
                         <p>&nbsp;</p>`;
             }
+
             else{
                 return "";
-            }
+            };
         }
     };
 
     const customizedParagraphs = {
         part0:`
-        ${handleCaseDetails.handleComplaints}
+        ${handleCaseDetails.handleComplaints()}
         `,
 
         part1:`
@@ -518,19 +519,6 @@ function customizedMessage(){
     
 }
 
-/* pp consideration:
-case type (NIW or EB1A)
-
-if EB1A:
-country of birth;
-inside or outside the US?
-if inside, what's their current visa?
-    if H1B, is it about to expire?(Within 1.5 years)
-if china/india:
-    What's their PD(LOok at previously filed I-140/I-140 filed with us)?
-        if PD is current:
-        if PD is not current:
-*/
 
 const customizedHTML = customizedMessage();
 
