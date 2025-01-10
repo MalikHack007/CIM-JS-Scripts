@@ -32,6 +32,12 @@ javascript:(function(){
         chargeCommentInput.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
+    else if ((!isCaseSpecific) && isRemainingAttyFee){
+        chargeCommentInput.value = `Remaining I-140 Attorney Fee, I-140 Filing Fee and Asylum Program Fee`;
+        chargeCommentInput.dispatchEvent(new Event('input', { bubbles: true }));
+        chargeCommentInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
     else{
         chargeCommentInput.value = "I-140 Filing Fee and Asylum Program Fee";
         chargeCommentInput.dispatchEvent(new Event('input', { bubbles: true }));
