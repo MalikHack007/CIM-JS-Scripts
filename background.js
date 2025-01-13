@@ -12,42 +12,50 @@
 
 // })
 const handleNewAvailableTask = (orderId)=>{
-    let storageObject = {}
-    storageObject[orderId] = "available"
-    chrome.storage.local.set(storageObject);
-    console.log(`Remaining Fee Task Available: ${orderId}`);
-    chrome.notifications.create({
-        title: "New Collect Remaining Fees Task Available",
-        message: `Order ID: ${orderId}`,
-        iconUrl:"images/icon-48.png",
-        type: "basic"
+    chrome.storage.local.get([orderId], (result)=>{
+        if((!result[orderId]) || result[orderId] == "pending"){
+            let storageObject = {}
+            storageObject[orderId] = "available"
+            chrome.storage.local.set(storageObject);
+            console.log(`Remaining Fee Task Available: ${orderId}`);
+            chrome.notifications.create({
+                title: "New Collect Remaining Fees Task Available",
+                message: `Order ID: ${orderId}`,
+                iconUrl:"images/icon-48.png",
+                type: "basic"
+            })
+        }
     })
 
 }
 
 const handleNewPendingTask = (orderId)=>{
-    let storageObject = {}
-    storageObject[orderId] = "pending"
-    chrome.storage.local.set(storageObject);
-    console.log(`Remaining Fee Task Pending: ${orderId}`);
+    chrome.storage.local.get([orderId], (result)=>{
+        if(!result[orderId]){
+            let storageObject = {}
+            storageObject[orderId] = "pending"
+            chrome.storage.local.set(storageObject);
+            console.log(`Remaining Fee Task Pending: ${orderId}`);
+        }
+    })
 }
 
-chrome.runtime.onMessage.addListener(data =>{
+const handleNewEB1BTask = (tabID) =>{
+    chrome.tabs.remove(tabID);
+}
+
+chrome.runtime.onMessage.addListener(data, senderObject =>{
     const {event, orderId} = data;
+    const{ tab } = senderObject;
+    const tabID = tab.id;
     switch(event){
         case 'available':
-            chrome.storage.local.get([orderId], (result)=>{
-                if((!result[orderId]) || result[orderId] == "pending"){
-                    handleNewAvailableTask(orderId);
-                }
-            })
+            handleNewAvailableTask(orderId);
             break;
         case 'pending':
-            chrome.storage.local.get([orderId], (result)=>{
-                if(!result[orderId]){
-                    handleNewPendingTask(orderId);
-                }
-            })
+            handleNewPendingTask(orderId);
             break;
+        case 'EB1B':
+            handleNewEB1BTask(tabID);
     }
 })
