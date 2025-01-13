@@ -1,16 +1,3 @@
-//set up listener for tab reload
-
-// chrome.webNavigation.onCompleted.addListener((details)=>{
-//     const { tabId } = details;
-//     setTimeout(()=>{
-//         chrome.scripting.executeScript({
-//             target: { tabId },
-//             files: ["lib/remainingFeeTaskAvailabilityDetection.js"]
-//         })
-//     }, 500)
-
-
-// })
 const handleNewAvailableTask = (orderId)=>{
     chrome.storage.local.get([orderId], (result)=>{
         if((!result[orderId]) || result[orderId] == "pending"){
@@ -40,11 +27,13 @@ const handleNewPendingTask = (orderId)=>{
     })
 }
 
-const handleNewEB1BTask = (tabID) =>{
+const handleUndoableTask = (tabID) =>{
     chrome.tabs.remove(tabID);
 }
 
-chrome.runtime.onMessage.addListener(data, senderObject =>{
+chrome.runtime.onMessage.addListener((data, senderObject) =>{
+    console.log(`message received: ${data}`)
+    console.log(`senderObject received: ${senderObject}`)
     const {event, orderId} = data;
     const{ tab } = senderObject;
     const tabID = tab.id;
@@ -55,7 +44,9 @@ chrome.runtime.onMessage.addListener(data, senderObject =>{
         case 'pending':
             handleNewPendingTask(orderId);
             break;
-        case 'EB1B':
-            handleNewEB1BTask(tabID);
+        case 'Undoable':
+            console.log(`Undoable detected:${orderId}`);
+            handleUndoableTask(tabID);
+            break;
     }
 })
