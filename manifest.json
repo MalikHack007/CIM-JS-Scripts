@@ -1,0 +1,48 @@
+{
+    "manifest_version": 3,
+  
+    "version":"1.0",
+  
+    "name": "Remaining Fee Task Master",
+  
+    "description": "Helps with various financial AIS tasks",
+  
+    
+    "action":{
+      "default_popup": "popup/popupBeta.html"
+    },
+  
+    "icons":{
+      "16": "images/icon-16.png",
+  
+      "32": "images/icon-32.png",
+  
+      "48": "images/icon-48.png",
+  
+      "128": "images/icon-128.png"
+    },
+  
+    "background": {
+      "service_worker": "background.js",
+  
+      "type": "module"
+    },
+  
+    "permissions":[
+      "webNavigation",
+      
+      "activeTab",
+  
+      "notifications",
+
+      "storage"
+    ],
+
+    "content_scripts": [
+        {
+            "matches": ["https://northcms.wenzo.com/order/*"],
+            "js": ["lib/remainingFeeTaskAvailabilityDetection.js"],
+            "run_at": "document_end"
+        }
+    ]
+  }
