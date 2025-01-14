@@ -110,12 +110,56 @@
   
 const clearLocalBtn = document.getElementById('clearLocal');
 
+const remainingFeeStopBtn = document.getElementById('remainingFeeStop');
+
+const remainingFeeStartBtn = document.getElementById('remainingFeeStart');
+
+const defaultBtnState = {
+    remainingFeeListenStatus: "Paused"
+}
+
+chrome.storage.local.get(defaultBtnState, (result)=>{
+    if(result.remainingFeeListenStatus == "Listening"){
+        remainingFeeStopBtn.disabled = false;
+        remainingFeeStartBtn.disabled = true;
+    }   
+})
+
+chrome.storage.local.get(null, (result) => {
+    // 'result' will be an object containing all stored key-value pairs
+    if (Object.keys(result).length === 0) {
+      clearLocalBtn.disabled = true;
+    } else {
+      clearLocalBtn.disabled = false;
+    }
+  });
+
 if (clearLocalBtn) {
     clearLocalBtn.onclick = () => {
         chrome.storage.local.clear(function () {
             console.log('local storage cleared');
         });
+        clearLocalBtn.disabled = true;
     };
-} else {
+} 
+else {
     console.error('Button with id "clearLocal" not found.');
 }
+
+
+remainingFeeStopBtn.onclick = ()=>{
+    const stopObject = {remainingFeeListenStatus: "Paused"}
+    remainingFeeStartBtn.disabled = false;
+    remainingFeeStopBtn.disabled = true;
+    //set to local storage so it remembers
+    chrome.storage.local.set(stopObject);
+}
+
+remainingFeeStartBtn.onclick = () =>{
+    const startObject = {remainingFeeListenStatus: "Listening"}
+    remainingFeeStopBtn.disabled = false;
+    remainingFeeStartBtn.disabled = true;
+    //set to local
+    chrome.storage.local.set(startObject);
+}
+

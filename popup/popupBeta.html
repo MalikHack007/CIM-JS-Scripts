@@ -7,10 +7,17 @@
     <link rel="stylesheet" href="bulma.css">
 </head>
 <body>
-    <div class="container">
-        <button class="button is-danger" id="clearLocal">clear all local storage</button>
+    <div class="container m-2">
+        <button class="button is-success m-2" id="remainingFeeStart">Start Remaining Fee Task Listener</button>
     </div>
-    
+    <div class="container m-2">
+        <button class="button is-danger m-2" id="remainingFeeStop" disabled>Stop Remaining Fee Task Listener</button>
+    </div>
+
+    <div class="container m-2">
+        <button class="button is-danger m-2" id="clearLocal" disabled>clear all local storage</button>
+    </div>
+
 </body>
 <script src="popup.js"></script>
 </html>
