@@ -31,34 +31,10 @@ def generate_work_report(data):
 if __name__ == '__main__':
     # Example 2D array (you can modify this to test with different data)
     data = [
-        ["Order ID", "83783", "85595", "53525", "89414", "83460", "87379", "89985", "71957", "73989", "86754", "90545", "25661", "90176", "89150", "85124", "88314", "83471", "55807", "81703", "69004", "69079", "85515", "71819", "67507", "67507"],
-        ["Task", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please collect remaining attorney fee due upon pl", "Please post remaining fees", "Please collect remaining attorney fee due upon pl", "Please collect remaining attorney fee due upon pl", "Please post remaining fees", "Please collect remaining attorney fee due upon pl", "Please post remaining fees", "Please collect remaining attorney fee due upon pl", "Please post remaining fees", "Please collect remaining attorney fee due upon pl", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Jan 14, 2025 12:33pm The invoice was paid at Jan 14, 2025 12:32 pm. If you have any questions, please don't hesitate to contact us."],
+        ["Order ID", "87457", "64945", "83789", "89737", "64781", "86293", "21188", "90866", "88181", "88937", "22351", "69627", "41024", "69608", "21188", "55212", "27994"],
+        ["Task", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Jan 14, 2025 8:39am Q.4 When recommendations letter fee and I-140 fee I will pay ? Q.5 If I want to proceed as a premium then the fee 2805USD when I will pay?", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Please post remaining fees", "Jan 15, 2025 11:04am Hello,I want to make the payment for the filing fees. Can you please send me the detailed instructions for the same?Regards,Deep", "Please post remaining fees", "Please post remaining fees"],
 
-        ["Personal Notes", "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "Completed without issue",
-    "If a client is expecting any sort of response, acknowledgment from us, we need to add 'We will respond to you further as soon as possible'",
-    "Completed without issue",
-    "Need to update the beginning of msg to 'Thank you for your messages.' because we are acknowledging both messages at the same time"]
+        ["Personal Notes", "Completed without issue", "Completed without issue", "need to add 'We will respond to you further as soon as possible'", "Completed without issue", "Completed without issue", "Completed without issue", "Completed without issue", "whenever possible, try to give client the most complete information, in this case, we are referring back to his contract to give him a clear idea about when and how much he will pay", "Completed without issue", "Completed without issue", "Oversight: Didn't see that PP Info has already been provided to client.", "Completed without issue", "Completed without issue", "Completed without issue", "client ended up not needing help since he was able to make the payment", "Completed without issue", "Completed without issue"]
     ]
 
     # Generate the HTML table string
