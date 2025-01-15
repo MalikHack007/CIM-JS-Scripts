@@ -1,9 +1,33 @@
 const taskMaster = "Malik Zhang"
-//receive a message, send the message back
+
+const remFeeWatchingTask = "remFeeWatchingStatus";
+
+const remFeeFetTask = "remFeeFetchingStatus";
+
+const runningStatus = "Running";
+
+const stoppedStatus = "Stopped";
+
+//this person checks the rem fee watching task status and tell rem fee watching content script whether to execute
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if(message.event == "remainingFeeCollection?"){
-        chrome.storage.local.get({remainingFeeListenStatus:"Paused"}, (result)=>{
-            if(result.remainingFeeListenStatus == "Listening"){
+        chrome.storage.local.get({[remFeeWatchingTask]:stoppedStatus}, (result)=>{
+            if(result[remFeeWatchingTask] == runningStatus){
+                sendResponse(true);
+            }
+            else{
+                sendResponse(false);
+            }
+        })
+    }
+    //keep the channel open
+    return true
+})
+//this person checks the rem fee fetching task status and tell rem fee fetching content script whether to execute
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if(message.event == "remFeeFetchingTask?"){
+        chrome.storage.local.get({[remFeeFetTask]:stoppedStatus}, (result)=>{
+            if(result[remFeeFetTask] == runningStatus){
                 sendResponse(true);
             }
             else{
@@ -95,6 +119,8 @@ chrome.runtime.onMessage.addListener((data, senderObject) =>{
 })
 
 
-
+chrome.storage.local.get(null, (result)=>{
+    console.log(`${JSON.stringify(result.collectRemFeeMsgTasks)}`);
+})
 
 

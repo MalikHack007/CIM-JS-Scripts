@@ -112,16 +112,50 @@ const clearLocalBtn = document.getElementById('clearLocal');
 
 const remainingFeeStopBtn = document.getElementById('remainingFeeStop');
 
+const remFeeWatchingTask = "remFeeWatchingStatus";
+
+const remFeeFetTask = "remFeeFetchingStatus";
+
 const remainingFeeStartBtn = document.getElementById('remainingFeeStart');
+
+const remFeeFetStartBtn = document.getElementById('taskFetcherStart');
+
+const remFeeFetStopBtn = document.getElementById('taskFetcherStop');
+
+const runningStatus = "Running";
+
+const stoppedStatus = "Stopped";
+
+const setTaskStatusStop = (task)=>{
+    const storageObject = { [task]: stoppedStatus };
+    chrome.storage.local.set(storageObject);
+}
+
+const setTaskStatusRun = (task)=>{
+    const storageObject = {[task]: runningStatus};
+    chrome.storage.local.set(storageObject);
+}
 
 const defaultBtnState = {
     remainingFeeListenStatus: "Paused"
+}
+
+const defaultFetBtnState = {
+    remFeeFetchStatus: "Paused"
 }
 
 chrome.storage.local.get(defaultBtnState, (result)=>{
     if(result.remainingFeeListenStatus == "Listening"){
         remainingFeeStopBtn.disabled = false;
         remainingFeeStartBtn.disabled = true;
+    }   
+})
+
+//set up rem fee fetch buttons
+chrome.storage.local.get(defaultFetBtnState, (result)=>{
+    if(result.remFeeFetchStatus == "Fetching"){
+        remFeeFetStopBtn.disabled = false;
+        remFeeFetStartBtn.disabled = true;
     }   
 })
 
@@ -148,18 +182,26 @@ else {
 
 
 remainingFeeStopBtn.onclick = ()=>{
-    const stopObject = {remainingFeeListenStatus: "Paused"}
+    setTaskStatusStop(remFeeWatchingTask);
     remainingFeeStartBtn.disabled = false;
     remainingFeeStopBtn.disabled = true;
-    //set to local storage so it remembers
-    chrome.storage.local.set(stopObject);
 }
 
 remainingFeeStartBtn.onclick = () =>{
-    const startObject = {remainingFeeListenStatus: "Listening"}
+    setTaskStatusRun(remFeeWatchingTask);
     remainingFeeStopBtn.disabled = false;
     remainingFeeStartBtn.disabled = true;
-    //set to local
-    chrome.storage.local.set(startObject);
+}
+
+remFeeFetStopBtn.onclick = ()=>{
+    setTaskStatusStop(remFeeFetTask);
+    remFeeFetStartBtn.disabled = false;
+    remFeeFetStopBtn.disabled = true;
+}
+
+remFeeFetStartBtn.onclick = ()=>{
+    setTaskStatusRun(remFeeFetTask);
+    remFeeFetStopBtn.disabled = false;
+    remFeeFetStartBtn.disabled = true;
 }
 

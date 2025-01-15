@@ -43,6 +43,11 @@
             "matches": ["https://northcms.wenzo.com/order/*"],
             "js": ["lib/remainingFeeTaskAvailabilityDetection.js"],
             "run_at": "document_end"
+        },
+        {
+          "matches": ["https://northcms.wenzo.com/action-items-summary"],
+          "js":["lib/remainingFeeTaskSearcher.js"],
+          "run_at": "document_end"
         }
     ]
   }
