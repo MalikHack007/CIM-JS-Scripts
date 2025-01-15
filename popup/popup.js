@@ -137,26 +137,34 @@ const setTaskStatusRun = (task)=>{
 }
 
 const defaultBtnState = {
-    remainingFeeListenStatus: "Paused"
+    [remFeeWatchingTask]: "Paused"
 }
 
 const defaultFetBtnState = {
-    remFeeFetchStatus: "Paused"
+    [remFeeFetTask]: "Paused"
 }
 
+
 chrome.storage.local.get(defaultBtnState, (result)=>{
-    if(result.remainingFeeListenStatus == "Listening"){
+    if(result[remFeeWatchingTask] == runningStatus){
+        console.log(result[remFeeWatchingTask]);
         remainingFeeStopBtn.disabled = false;
         remainingFeeStartBtn.disabled = true;
-    }   
+    }
+    else{
+        console.log(result[remFeeWatchingTask]);
+    }
 })
 
 //set up rem fee fetch buttons
 chrome.storage.local.get(defaultFetBtnState, (result)=>{
-    if(result.remFeeFetchStatus == "Fetching"){
+    if(result[remFeeFetTask] == runningStatus){
         remFeeFetStopBtn.disabled = false;
         remFeeFetStartBtn.disabled = true;
-    }   
+    }
+    else{
+        console.log(result[remFeeFetTask]);
+    }
 })
 
 chrome.storage.local.get(null, (result) => {
@@ -183,6 +191,7 @@ else {
 
 remainingFeeStopBtn.onclick = ()=>{
     setTaskStatusStop(remFeeWatchingTask);
+
     remainingFeeStartBtn.disabled = false;
     remainingFeeStopBtn.disabled = true;
 }
@@ -204,4 +213,12 @@ remFeeFetStartBtn.onclick = ()=>{
     remFeeFetStopBtn.disabled = false;
     remFeeFetStartBtn.disabled = true;
 }
+
+chrome.storage.local.get(remFeeWatchingTask, (result)=>{
+    console.log(result[remFeeWatchingTask]);
+})
+
+chrome.storage.local.get(remFeeFetTask, (result)=>{
+    console.log(result[remFeeFetTask]);
+})
 

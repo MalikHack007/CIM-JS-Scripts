@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 //execute content script
 
-
+//this person needs to notify me when a new available task appears.
 chrome.runtime.onMessage.addListener((data, senderObject) =>{
     // console.log(`message received: ${data}`)
     // console.log(`senderObject received: ${senderObject}`)
@@ -80,12 +80,13 @@ chrome.runtime.onMessage.addListener((data, senderObject) =>{
         chrome.tabs.remove(tabID);
     }
 
+
     const handleTouchedTask = (tabID, msgSender) =>{
         //look at if the pending msg/posted msg comes from malik zhang
         console.log(`Touched detected, message sender:${msgSender}`);
         if((msgSender !== taskMaster)){
-            console.log(`attempted to remove tab ${tabID}`);
             chrome.tabs.remove(tabID);
+            console.log(`removed tab ${tabID}.`);
         }   
     }
     let event = "N/A";
@@ -98,6 +99,7 @@ chrome.runtime.onMessage.addListener((data, senderObject) =>{
     else{
         ({event, orderId} = data);
     }
+    //get the tab ID of the opened tab
     const{ tab } = senderObject;
     const tabID = tab.id;
     switch(event){
