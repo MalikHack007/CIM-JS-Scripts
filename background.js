@@ -1,5 +1,7 @@
 const taskMaster = "Malik Zhang"
 
+const remFeeTaskLookUp = "Available Task Inquiry"
+
 const statusAvail = "Available";
 const statusPend = "Pending";
 const statusMaster = `Done by ${taskMaster}`;
@@ -103,7 +105,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 //execute content script
 
 //this person needs to notify me when a new available task appears.
-chrome.runtime.onMessage.addListener(async (message, senderObject) =>{
+chrome.runtime.onMessage.addListener(async (message, senderObject, sendResponse) =>{
     //wrap chrome.notifications inside of a promise, so we can wait for it to resolve. 
     async function sendAvailableNotification(){
         return new Promise ((resolve, reject)=>{
@@ -250,9 +252,7 @@ chrome.runtime.onMessage.addListener(async (message, senderObject) =>{
                 })
             break;
     }
-})
-//this person is responsible for storing task info in local database.
-chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
+
     if(message.signal == taskDiscoverySignal){
         taskStatQueue.push(message.info);
         sendResponse(`Task ${message.info}sent to queue for storage.`);
@@ -261,10 +261,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
         }
     }
 })
+//this person is responsible for storing task info in local database.
+
 
 //this person reports the local storage upon loading the extension
 chrome.storage.local.get(null, (result)=>{
     console.log(`${JSON.stringify(result.collectRemFeeMsgTasks)}`);
 })
+
+chrome.runtime.onMessage((message)=>{
+    if (message.question == remFeeTaskLookUp){
+        chrome.storage.local.get(taskInfoLookUp, (result)=>{
+            let taskInfoDB;
+            if(result[taskInfoLookUp]){
+                taskInfoDB = result[taskInfoLookUp];
+                Object.keys(taskInfoDB).forEach((orderID)=>{
+                    if(taskInfoDB[orderID] == statusAvail){
+                        console.log(`Available task: ${orderID} `);
+                    }
+                })
+            }
+            else{
+                console.log("Nothing is in the database yet.")
+            }
+        
+        })
+    }
+})
+
+
 
 

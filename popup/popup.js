@@ -122,9 +122,13 @@ const remFeeFetStartBtn = document.getElementById('taskFetcherStart');
 
 const remFeeFetStopBtn = document.getElementById('taskFetcherStop');
 
+const availTaskBtn = document.getElementById('availTaskInquiry');
+
 const runningStatus = "Running";
 
 const stoppedStatus = "Stopped";
+
+const remFeeTaskLookUp = "Available Task Inquiry"
 
 const setTaskStatusStop = (task)=>{
     const storageObject = { [task]: stoppedStatus };
@@ -214,11 +218,15 @@ remFeeFetStartBtn.onclick = ()=>{
     remFeeFetStartBtn.disabled = true;
 }
 
-chrome.storage.local.get(remFeeWatchingTask, (result)=>{
-    console.log(result[remFeeWatchingTask]);
-})
+availTaskBtn.onclick = ()=>{
+    chrome.runtime.sendMessage({question: remFeeTaskLookUp});
+}
 
-chrome.storage.local.get(remFeeFetTask, (result)=>{
-    console.log(result[remFeeFetTask]);
-})
+// chrome.storage.local.get(remFeeWatchingTask, (result)=>{
+//     console.log(result[remFeeWatchingTask]);
+// })
+
+// chrome.storage.local.get(remFeeFetTask, (result)=>{
+//     console.log(result[remFeeFetTask]);
+// })
 
