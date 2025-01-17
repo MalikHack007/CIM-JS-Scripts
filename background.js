@@ -19,9 +19,25 @@ const taskStatQueue = [];
 
 const taskDiscoverySignal = "Task Detected";
 
+let notificationURLs = {};
+
 let isProcessing = false;
 
 const taskInfoLookUp = "collectRemFeeMsgTasks";
+
+let lastTimestamp = 0;
+let counter = 0;
+
+function generateUniqueId() {
+    const now = Date.now();
+    if (now === lastTimestamp) {
+        counter++;
+    } else {
+        lastTimestamp = now;
+        counter = 0;
+    }
+    return `${now}-${counter}`;
+}
 
 chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
 
@@ -116,7 +132,9 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
 
             function sendAvailableNotification(){
                 return new Promise ((resolve, reject)=>{
-                    chrome.notifications.create({
+                    const notificationID = generateUniqueId();
+                    notificationURLs[notificationID] = `https://northcms.wenzo.com/order/${orderID}`;      
+                    chrome.notifications.create(notificationID, {
                         title: "New Collect Remaining Fees Task Available",
                         message: `Order ID: ${orderID}`,
                         iconUrl:"images/icon-48.png",
@@ -345,6 +363,15 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
 
 chrome.storage.local.get(null, (result)=>{
     console.log(`${JSON.stringify(result.collectRemFeeMsgTasks)}`);
+})
+
+chrome.notifications.onClicked.addListener((notificationId)=>{
+    const url = notificationURLs[notificationId];
+    if(url){
+        chrome.tabs.create({url})
+        delete notificationURLs[notificationId];
+    }
+    
 })
 
 
