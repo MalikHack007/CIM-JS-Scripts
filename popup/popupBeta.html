@@ -7,30 +7,41 @@
     <link rel="stylesheet" href="bulma.css">
 </head>
 <body>
-    <div class="container m-2">
-        <button class="button is-success m-2" id="remainingFeeStart">Start Remaining Fee Task Listener</button>
+    <div class="tabs">
+        <ul>
+          <li class="is-active" id="controls"><a>Controls</a></li>
+          <li id = "taskList"><a>Task List</a></li>
+          <li><a>Remaining Fee Task Input Form</a></li>
+        </ul>
     </div>
-    <div class="container m-2">
-        <button class="button is-danger m-2" id="remainingFeeStop" disabled>Stop Remaining Fee Task Listener</button>
+    <div id="controlPanel">
+        <div class="container m-2">
+            <button class="button is-success m-2" id="remainingFeeStart">Start Remaining Fee Task Listener</button>
+        </div>
+        <div class="container m-2">
+            <button class="button is-danger m-2" id="remainingFeeStop" disabled>Stop Remaining Fee Task Listener</button>
+        </div>
+        
+        <div class="container m-2">
+            <button class="button is-success m-2" id="taskFetcherStart">Start Remaining Fee Task Fetcher</button>
+        </div>
+        
+        <div class = "container m-2">
+            <button class="button is-danger m-2" id="taskFetcherStop" disabled>Stop Remaining Fee Task Fetcher</button>
+        </div>
+        
+        <div class="container m-2">
+            <button class="button is-danger m-2" id="clearLocal" disabled>clear all local storage</button>
+        </div>
+        
+        <div class="container m-2">
+            <button class="button is-success m-2" id="availTaskInquiry">Print Available Task</button>
+        </div>
     </div>
-    
-    <div class="container m-2">
-        <button class="button is-success m-2" id="taskFetcherStart">Start Remaining Fee Task Fetcher</button>
+    <div id="TaskStatusInfo" style = "display: none;" >
+          <div class="columns is-mobile" id = "taskStatusCols">
+          </div>
     </div>
-
-    <div class = "container m-2">
-        <button class="button is-danger m-2" id="taskFetcherStop" disabled>Stop Remaining Fee Task Fetcher</button>
-    </div>
-
-    <div class="container m-2">
-        <button class="button is-danger m-2" id="clearLocal" disabled>clear all local storage</button>
-    </div>
-
-    <div class="container m-2">
-        <button class="button is-success m-2" id="availTaskInquiry">Print Available Task</button>
-    </div>
-    
-
 </body>
 <script src="popup.js"></script>
 </html>

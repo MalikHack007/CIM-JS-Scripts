@@ -23,17 +23,6 @@ let isProcessing = false;
 
 const taskInfoLookUp = "collectRemFeeMsgTasks";
 
-
-
-
-//this person checks the rem fee fetching run/stop status and tell rem fee fetching content script whether to execute
-
-
-//set up listener for task viability messages
-
-//execute content script
-
-//this person needs to notify me when a new available task appears.
 chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
 
     const processQueue = ()=>{
@@ -348,16 +337,6 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
     return true
 })
 
-// chrome.runtime.onMessage.addListener(async (message, senderObject, sendResponse) => {
-//     const backEndRe = await new Promise(()=>{
-//         if()
-//     })
-//     return true;
-// })
-//this person is responsible for storing task info in local database.
-
-
-//this person reports the local storage upon loading the extension
 chrome.storage.local.get(null, (result)=>{
     console.log(`${JSON.stringify(result.collectRemFeeMsgTasks)}`);
 })

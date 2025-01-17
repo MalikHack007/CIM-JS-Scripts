@@ -107,7 +107,12 @@
 //     // Initial visibility setup
 //     updateVisibility();
 //   });
-  
+const documentBody = document.querySelector('body');
+
+const taskColumnParent = document.getElementById('taskStatusCols');
+
+const taskStatusPage = document.querySelector('#TaskStatusInfo');
+
 const clearLocalBtn = document.getElementById('clearLocal');
 
 const remainingFeeStopBtn = document.getElementById('remainingFeeStop');
@@ -124,11 +129,128 @@ const remFeeFetStopBtn = document.getElementById('taskFetcherStop');
 
 const availTaskBtn = document.getElementById('availTaskInquiry');
 
+const taskListTab = document.getElementById('taskList')
+
+const controlsTab = document.getElementById('controls');
+
 const runningStatus = "Running";
 
 const stoppedStatus = "Stopped";
 
 const remFeeTaskLookUp = "Available Task Inquiry"
+
+const controlPanel = document.getElementById('controlPanel')
+
+const taskInfoLookUp = "collectRemFeeMsgTasks"
+
+const taskMaster = "Malik Zhang"
+
+const statusAvail = "Available";
+const statusPend = "Pending";
+const statusMaster = `Done by ${taskMaster}`;
+const statusUnavail = "Undoable";
+
+
+/*
+<div class="column has-text-centered">
+    <h3 class="title is-6 has-text-grey">Taken Tasks(20)</h3>
+    <ul>
+        <li>Item 1</li>
+    </ul>
+</div>
+*/
+const generateTaskList = (taskName,taskNumber,orderIDs)=>{
+    /*
+    taskName == ["Available Tasks", "Pending Tasks", "Done Tasks", "Taken Tasks"]
+
+    taskNumber == ["20", "20", "20", "20"]
+
+    orderID == [["1234"....], [....], [....], [.....]];
+    */
+    taskColumnParent.innerHTML = '';
+
+    const colorClasses = ["has-text-primary", "has-text-danger", "has-text-success", "has-text-grey"]
+    
+    for (let i = 0; i < 4; i++){
+        
+        // Create the column div
+        
+        const columnDiv = document.createElement("div");
+        columnDiv.className = "column has-text-centered";
+
+        // Create the heading
+        const heading = document.createElement("h3");
+        heading.className = `title is-6 ${colorClasses[i]}`;
+        heading.textContent = `${taskName[i]}(${taskNumber[i]})`;
+
+        // Create the unordered list
+        const ul = document.createElement("ul");
+
+        // Create the list items
+        for(const orderid of orderIDs[i]){
+            const li = document.createElement("li");
+            li.textContent = `${orderid}`;
+    
+            // Append the list item to the unordered list
+            ul.appendChild(li);
+        }
+
+
+        // Append the heading and unordered list to the column div
+        columnDiv.appendChild(heading);
+        columnDiv.appendChild(ul);
+
+        // Append the column div to the parent element
+        taskColumnParent.appendChild(columnDiv);
+    }
+
+}
+
+chrome.storage.local.get([taskInfoLookUp], (result)=>{
+    let taskInfoDB;
+    let accumAvail = 0;
+    let accumPend = 0;
+    let accumUnd = 0;
+    let accumMast = 0;
+    const taskName = ["Available Tasks", "Pending Tasks", "Done Tasks", "Taken Tasks"]
+    let availTasks = [];
+    let pendTask = [];
+    let mastTask = [];
+    let undTask = [];
+    if(result[taskInfoLookUp]){
+        taskInfoDB = result[taskInfoLookUp];
+        Object.keys(taskInfoDB).forEach((orderID)=>{
+            switch (taskInfoDB[orderID]){
+                case statusAvail:
+                    accumAvail += 1;
+                    availTasks.push(orderID);
+                    break;
+                case statusMaster:
+                    accumMast += 1;
+                    mastTask.push(orderID);
+                    break;
+                case statusPend:
+                    accumPend += 1;
+                    pendTask.push(orderID);
+                    break;
+                case statusUnavail:
+                    accumUnd += 1;
+                    undTask.push(orderID);
+                    break;
+            }
+
+        })
+        const orderIDs = [availTasks, pendTask, mastTask, undTask];
+        const orderCounts = [accumAvail, accumPend, accumMast, accumUnd];
+        generateTaskList(taskName, orderCounts, orderIDs);
+    }
+    else{
+        const orderIDs = [availTasks, pendTask, mastTask, undTask];
+        const orderCounts = [accumAvail, accumPend, accumMast, accumUnd];
+        generateTaskList(taskName, orderCounts, orderIDs);
+    }
+})
+
 
 const setTaskStatusStop = (task)=>{
     const storageObject = { [task]: stoppedStatus };
@@ -147,6 +269,15 @@ const defaultBtnState = {
 const defaultFetBtnState = {
     [remFeeFetTask]: "Paused"
 }
+
+const switchElement = (elemToHide, elemToShow, hideTab, showTab)=>{
+    elemToHide.style.display = "none";
+    elemToShow.style.display = "";
+    hideTab.classList.remove("is-active");
+    showTab.classList.add("is-active");
+}
+
+
 
 
 chrome.storage.local.get(defaultBtnState, (result)=>{
@@ -179,6 +310,16 @@ chrome.storage.local.get(null, (result) => {
       clearLocalBtn.disabled = false;
     }
   });
+
+console.log(taskStatusPage);
+
+taskListTab.onclick = ()=>{
+    switchElement(controlPanel, taskStatusPage, controlsTab, taskListTab);
+}
+
+controlsTab.onclick = ()=>{
+    switchElement(taskStatusPage, controlPanel, taskListTab, controlsTab);
+}
 
 if (clearLocalBtn) {
     clearLocalBtn.onclick = () => {
