@@ -114,7 +114,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             */
         
 
-            async function sendAvailableNotification(){
+            function sendAvailableNotification(){
                 return new Promise ((resolve, reject)=>{
                     chrome.notifications.create({
                         title: "New Collect Remaining Fees Task Available",
@@ -134,13 +134,13 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             }
             // console.log(`message received: ${data}`)
             // console.log(`senderObject received: ${senderObject}`)
-            async function handleAvailableTask (){
+            function handleAvailableTask (){
                 //only the available ones that are either 1) not in the database or 2) shows as pending before.
                 return new Promise ((resolve, reject)=>{
                     chrome.storage.local.get([taskInfoLookUp], (result)=>{
                         if(result[taskInfoLookUp]){
                             const taskInfoDB = result[taskInfoLookUp]
-                            if(taskInfoDB[orderID] == statusPend || (!taskInfoDB[orderID])){
+                            if(taskInfoDB[orderID] !== statusAvail || (!taskInfoDB[orderID])){
                                 sendAvailableNotification()
                                     .then((successMsg)=>{
                                         console.log(successMsg);
@@ -169,7 +169,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             }
             
             
-            async function handleUndoableTask(tabID){
+            function handleUndoableTask(tabID){
                 return new Promise((resolve, reject)=>{
                     chrome.tabs.remove(tabID, ()=>{
                         if(chrome.runtime.lastError){
@@ -183,7 +183,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             }
         
             //THIS ONE DOES NOT NEED TO PROCESS SENDER INFO.
-            async function handleTouchedTask (tabID, msgSender) {
+            function handleTouchedTask (tabID, msgSender) {
                 //look at if the pending msg/posted msg comes from malik zhang
                 return new Promise((resolve, reject)=>{
                     console.log(`Touched detected, message sender:${msgSender}`);
@@ -196,6 +196,9 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                                 resolve(`removed tab ${tabID}.`);
                             }
                         });
+                    }
+                    else{
+                        resolve(`handleTouchedTask Promise Return: done by ${taskMaster}`);
                     } 
                 })
         
@@ -246,6 +249,9 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                     processQueue();
                 }
             }
+        }
+        else{
+            console.log("Task status was not changed since last time, nothing is done.");
         }
     }
     console.log(`message received: ${JSON.stringify(message)}`);
