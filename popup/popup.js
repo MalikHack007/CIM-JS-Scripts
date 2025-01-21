@@ -107,6 +107,8 @@
 //     // Initial visibility setup
 //     updateVisibility();
 //   });
+
+//#region Definitions
 const documentBody = document.querySelector('body');
 
 const taskColumnParent = document.getElementById('taskStatusCols');
@@ -116,10 +118,6 @@ const taskStatusPage = document.querySelector('#TaskStatusInfo');
 const clearLocalBtn = document.getElementById('clearLocal');
 
 const remainingFeeStopBtn = document.getElementById('remainingFeeStop');
-
-const remFeeWatchingTask = "remFeeWatchingStatus";
-
-const remFeeFetTask = "remFeeFetchingStatus";
 
 const remainingFeeStartBtn = document.getElementById('remainingFeeStart');
 
@@ -133,22 +131,89 @@ const taskListTab = document.getElementById('taskList')
 
 const controlsTab = document.getElementById('controls');
 
-const runningStatus = "Running";
+const scriptNames = {
+    remFeeWatch: "Remaining Fee Task Watcher",
+    remFeeFetch: "Remaining Fee Task Fetcher"
+}
 
-const stoppedStatus = "Stopped";
+const runningStatuses = {
+    runningStatus: "Running",
+    stoppedStatus: "Stopped"
+}
 
-const remFeeTaskLookUp = "Available Task Inquiry"
+const messageTypes = {
+    setScriptRunStatus: "Set up script running status."
+}
 
 const controlPanel = document.getElementById('controlPanel')
 
-const taskInfoLookUp = "collectRemFeeMsgTasks"
+const localStorageKeys = {
+    scriptRunningStatusesDB: "Scripts Statuses",
+    taskDataBase: "Task Database"
+}
 
-const taskMaster = "Malik Zhang"
+const taskers = {
+    taskMaster: "Malik Zhang",
+    nonTaskMaster: "others"
+}
 
-const statusAvail = "Available";
-const statusPend = "Pending";
-const statusMaster = `Done by ${taskMaster}`;
-const statusUnavail = "Undoable";
+const taskStatuses = {
+    statusAvail: "Available",
+    statusPend: "Pending",
+    statusMaster: `Done by ${taskers.taskMaster}`,
+    statusUnavail: "Undoable"
+}
+
+const aisNames = {
+    remFeeCollect: "Please Post Remaining Fee Message"
+}
+
+const initializeRemFeeFetScriptBtns = ()=>{
+    remFeeFetStopBtn.disabled = false;
+    remFeeFetStartBtn.disabled = true;
+}
+
+const scriptRunBtnActivate = (btnToEnable, btnToDisable)=>{
+    btnToEnable.disabled = false;
+    btnToDisable.disabled = true;
+}
+
+const updateScriptRunBtnStatus = (scriptName)=>{
+    let startBtn;
+    let stopBtn;
+    // console.log(`The script name passed into updateScriptRunBtnStatus is ${scriptName}`);
+    if(scriptName == scriptNames.remFeeWatch){
+        startBtn = remainingFeeStartBtn;
+        stopBtn = remainingFeeStopBtn;
+        // console.log(`startBtn/stopBtn set up for watcher: start:${startBtn.id} stop:${stopBtn.id}`)
+    }
+    else if(scriptName == scriptNames.remFeeFetch){
+        startBtn = remFeeFetStartBtn;
+        stopBtn = remFeeFetStopBtn;
+        // console.log(`startBtn/stopBtn set up for fetcher: start:${startBtn.id} stop:${stopBtn.id}`)
+    }
+    chrome.storage.local.get(localStorageKeys.scriptRunningStatusesDB, (result)=>{
+        if(result[localStorageKeys.scriptRunningStatusesDB]){
+            const scriptRunDB = result[localStorageKeys.scriptRunningStatusesDB];
+            if(scriptRunDB[scriptName]){
+                const scriptRunStatus = scriptRunDB[scriptName];
+                if(scriptRunStatus == runningStatuses.runningStatus){
+                    scriptRunBtnActivate(stopBtn, startBtn);
+                }
+                else{
+                    scriptRunBtnActivate(startBtn, stopBtn);
+                }
+            }
+            else{
+                scriptRunBtnActivate(startBtn, stopBtn);
+            }
+        }
+        else{
+            scriptRunBtnActivate(startBtn, stopBtn);
+        }
+    })
+
+}
 
 
 /*
@@ -206,69 +271,81 @@ const generateTaskList = (taskName,taskNumber,orderIDs)=>{
 
 }
 
-chrome.storage.local.get([taskInfoLookUp], (result)=>{
-    let taskInfoDB;
-    let accumAvail = 0;
-    let accumPend = 0;
-    let accumUnd = 0;
-    let accumMast = 0;
-    const taskName = ["Available Tasks", "Pending Tasks", "Done Tasks", "Taken Tasks"]
-    let availTasks = [];
-    let pendTask = [];
-    let mastTask = [];
-    let undTask = [];
-    if(result[taskInfoLookUp]){
-        taskInfoDB = result[taskInfoLookUp];
-        Object.keys(taskInfoDB).forEach((orderID)=>{
-            switch (taskInfoDB[orderID]){
-                case statusAvail:
-                    accumAvail += 1;
-                    availTasks.push(orderID);
-                    break;
-                case statusMaster:
-                    accumMast += 1;
-                    mastTask.push(orderID);
-                    break;
-                case statusPend:
-                    accumPend += 1;
-                    pendTask.push(orderID);
-                    break;
-                case statusUnavail:
-                    accumUnd += 1;
-                    undTask.push(orderID);
-                    break;
-            }
+const setScriptStatusStop = (script)=>{
+    const storageObject = { [script]: runningStatuses.stoppedStatus };
+    chrome.runtime.sendMessage({ type: messageTypes.setScriptRunStatus, info: storageObject });
+}
 
-        })
-        const orderIDs = [availTasks, pendTask, mastTask, undTask];
-        const orderCounts = [accumAvail, accumPend, accumMast, accumUnd];
-        generateTaskList(taskName, orderCounts, orderIDs);
+const setScriptStatusRun = (script)=>{
+    const storageObject = {[script]: runningStatuses.runningStatus};
+    chrome.runtime.sendMessage({type: messageTypes.setScriptRunStatus, info: storageObject})
+}
+
+//#region Local Storage Reference
+/*
+        chrome.storage.local
+
+
+
+    key: localStorageKeys.taskDataBase
+
+
+
+    value: 
+
+    {
+
+    “remFeeCollect”: {
+
+        “1234”:{
+
+        taskStatus: “pending”,
+
+        messageInputs: {…….},
+
+        message: “N/A”
+
+        }
+
+        [orderID]: {
+
+        taskStatus: [status],
+
+        messageInputs: {…….},
+
+        message: [pre-written message]
+
+        }
+
+        }
+
     }
-    else{
-        const orderIDs = [availTasks, pendTask, mastTask, undTask];
-        const orderCounts = [accumAvail, accumPend, accumMast, accumUnd];
-        generateTaskList(taskName, orderCounts, orderIDs);
+
+    key: localStorageKeys.scriptRunningStatusesDB
+
+
+
+    value:
+
+    {
+
+
+
+        [scriptName]: runningStatus
+
+
+
+        remFeeDetection: “Running”
+
+
+
+        remFeeFetch: “Stopped”
+
+
+
     }
-})
-
-
-const setTaskStatusStop = (task)=>{
-    const storageObject = { [task]: stoppedStatus };
-    chrome.storage.local.set(storageObject);
-}
-
-const setTaskStatusRun = (task)=>{
-    const storageObject = {[task]: runningStatus};
-    chrome.storage.local.set(storageObject);
-}
-
-const defaultBtnState = {
-    [remFeeWatchingTask]: "Paused"
-}
-
-const defaultFetBtnState = {
-    [remFeeFetTask]: "Paused"
-}
+*/
+//#endregion
 
 const switchElement = (elemToHide, elemToShow, hideTab, showTab)=>{
     elemToHide.style.display = "none";
@@ -277,30 +354,107 @@ const switchElement = (elemToHide, elemToShow, hideTab, showTab)=>{
     showTab.classList.add("is-active");
 }
 
+//#endregion
 
-
-
-chrome.storage.local.get(defaultBtnState, (result)=>{
-    if(result[remFeeWatchingTask] == runningStatus){
-        console.log(result[remFeeWatchingTask]);
-        remainingFeeStopBtn.disabled = false;
-        remainingFeeStartBtn.disabled = true;
+chrome.storage.local.get([localStorageKeys.taskDataBase], (result)=>{
+    if(result[localStorageKeys.taskDataBase]){
+        const taskDataBase = result[localStorageKeys.taskDataBase];
+        if(taskDataBase[aisNames.remFeeCollect]){
+            let accumAvail = 0;
+            let accumPend = 0;
+            let accumUnd = 0;
+            let accumMast = 0;
+            const taskName = ["Available Tasks", "Pending Tasks", "Done Tasks", "Taken Tasks"]
+            let availTasks = [];
+            let pendTask = [];
+            let mastTask = [];
+            let undTask = [];
+            const remFeeAisDB = taskDataBase[aisNames.remFeeCollect];
+            Object.keys(remFeeAisDB).forEach((orderID)=>{
+                // console.log(orderID);
+                const taskStatus = remFeeAisDB[orderID].taskStatus;
+                switch (taskStatus){
+                    case taskStatuses.statusAvail:
+                        accumAvail += 1;
+                        availTasks.push(orderID);
+                        break;
+                    case taskStatuses.statusMaster:
+                        accumMast += 1;
+                        mastTask.push(orderID);
+                        break;
+                    case taskStatuses.statusPend:
+                        accumPend += 1;
+                        pendTask.push(orderID);
+                        break;
+                    case taskStatuses.statusUnavail:
+                        accumUnd += 1;
+                        undTask.push(orderID);
+                        break;
+            }
+            })
+            const orderIDs = [availTasks, pendTask, mastTask, undTask];
+            console.log(`orderIDs extracted: ${orderIDs}`)
+            const orderCounts = [accumAvail, accumPend, accumMast, accumUnd];
+            console.log(`orderCounts extracted: ${orderCounts}`);
+            generateTaskList(taskName, orderCounts, orderIDs);
+        }
+        else{
+            //code here
+            console.log("Task database of rem fee collect task does not exist, nothing is generated");
+        }
     }
     else{
-        console.log(result[remFeeWatchingTask]);
+        //code here
+        console.log("Task database does not exist, nothing is generated")
     }
 })
 
-//set up rem fee fetch buttons
-chrome.storage.local.get(defaultFetBtnState, (result)=>{
-    if(result[remFeeFetTask] == runningStatus){
-        remFeeFetStopBtn.disabled = false;
-        remFeeFetStartBtn.disabled = true;
-    }
-    else{
-        console.log(result[remFeeFetTask]);
-    }
+//#region Set Up for script run btns
+
+Object.keys(scriptNames).forEach((scriptNameKey)=>{
+    updateScriptRunBtnStatus(scriptNames[scriptNameKey]);
 })
+
+remainingFeeStopBtn.onclick = ()=>{
+    setScriptStatusStop(scriptNames.remFeeWatch);
+    scriptRunBtnActivate(remainingFeeStartBtn, remainingFeeStopBtn);
+}
+
+remainingFeeStartBtn.onclick = () =>{
+    setScriptStatusRun(scriptNames.remFeeWatch);
+    scriptRunBtnActivate(remainingFeeStopBtn, remainingFeeStartBtn);
+}
+
+remFeeFetStopBtn.onclick = ()=>{
+    setScriptStatusStop(scriptNames.remFeeFetch);
+    scriptRunBtnActivate(remFeeFetStartBtn, remFeeFetStopBtn);
+}
+
+remFeeFetStartBtn.onclick = ()=>{
+    setScriptStatusRun(scriptNames.remFeeFetch);
+    scriptRunBtnActivate(remFeeFetStopBtn, remFeeFetStartBtn);
+}
+
+//#endregion
+
+//#region Set Up for Tabs
+taskListTab.onclick = ()=>{
+    switchElement(controlPanel, taskStatusPage, controlsTab, taskListTab);
+}
+
+controlsTab.onclick = ()=>{
+    switchElement(taskStatusPage, controlPanel, taskListTab, controlsTab);
+}
+//#endregion
+
+if (clearLocalBtn) {
+    clearLocalBtn.onclick = () => {
+        chrome.storage.local.clear(function () {
+            // console.log('local storage cleared');
+        });
+        clearLocalBtn.disabled = true;
+    };
+} 
 
 chrome.storage.local.get(null, (result) => {
     // 'result' will be an object containing all stored key-value pairs
@@ -309,65 +463,4 @@ chrome.storage.local.get(null, (result) => {
     } else {
       clearLocalBtn.disabled = false;
     }
-  });
-
-console.log(taskStatusPage);
-
-taskListTab.onclick = ()=>{
-    switchElement(controlPanel, taskStatusPage, controlsTab, taskListTab);
-}
-
-controlsTab.onclick = ()=>{
-    switchElement(taskStatusPage, controlPanel, taskListTab, controlsTab);
-}
-
-if (clearLocalBtn) {
-    clearLocalBtn.onclick = () => {
-        chrome.storage.local.clear(function () {
-            console.log('local storage cleared');
-        });
-        clearLocalBtn.disabled = true;
-    };
-} 
-else {
-    console.error('Button with id "clearLocal" not found.');
-}
-
-
-remainingFeeStopBtn.onclick = ()=>{
-    setTaskStatusStop(remFeeWatchingTask);
-
-    remainingFeeStartBtn.disabled = false;
-    remainingFeeStopBtn.disabled = true;
-}
-
-remainingFeeStartBtn.onclick = () =>{
-    setTaskStatusRun(remFeeWatchingTask);
-    remainingFeeStopBtn.disabled = false;
-    remainingFeeStartBtn.disabled = true;
-}
-
-remFeeFetStopBtn.onclick = ()=>{
-    setTaskStatusStop(remFeeFetTask);
-    remFeeFetStartBtn.disabled = false;
-    remFeeFetStopBtn.disabled = true;
-}
-
-remFeeFetStartBtn.onclick = ()=>{
-    setTaskStatusRun(remFeeFetTask);
-    remFeeFetStopBtn.disabled = false;
-    remFeeFetStartBtn.disabled = true;
-}
-
-availTaskBtn.onclick = ()=>{
-    chrome.runtime.sendMessage({question: remFeeTaskLookUp});
-}
-
-// chrome.storage.local.get(remFeeWatchingTask, (result)=>{
-//     console.log(result[remFeeWatchingTask]);
-// })
-
-// chrome.storage.local.get(remFeeFetTask, (result)=>{
-//     console.log(result[remFeeFetTask]);
-// })
-
+});

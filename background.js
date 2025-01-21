@@ -1,29 +1,59 @@
-const taskMaster = "Malik Zhang"
+//#region definitions
+const taskers = {
+    taskMaster: "Malik Zhang",
+    nonTaskMaster: "others"
+}
 
-const remFeeTaskLookUp = "Available Task Inquiry"
+const aisNames = {
+    remFeeCollect: "Please Post Remaining Fee Message"
+}
 
-const statusAvail = "Available";
-const statusPend = "Pending";
-const statusMaster = `Done by ${taskMaster}`;
-const statusUnavail = "Undoable";
+const taskStatuses = {
+    statusAvail: "Available",
+    statusPend: "Pending",
+    statusMaster: `Done by ${taskers.taskMaster}`,
+    statusUnavail: "Undoable"
+}
 
 const remFeeWatchingTask = "remFeeWatchingStatus";
 
 const remFeeFetTask = "remFeeFetchingStatus";
 
-const runningStatus = "Running";
+const localStorageKeys = {
+    scriptRunningStatusesDB: "Scripts Statuses",
+    taskDataBase: "Task Database"
+}
 
-const stoppedStatus = "Stopped";
 
-const taskStatQueue = [];
+const runningStatuses = {
+    runningStatus: "Running",
+    stoppedStatus: "Stopped"
+}
+
+const queues = {
+    [localStorageKeys.scriptRunningStatusesDB]: {queue: [], queueType: localStorageKeys.scriptRunningStatusesDB},
+    [localStorageKeys.taskDataBase] : {queue: [], queueType: localStorageKeys.taskDataBase}
+}
+
+
+
+//taskStatQueue = queues[localStorageKeys.taskDataBase]
 
 const taskDiscoverySignal = "Task Detected";
 
 let notificationURLs = {};
 
-let isProcessing = false;
+const isProcessingBooleans = {
+    isProcessingTaskDB: false,
+    isProcessingScriptStatus: false
+}
 
-const taskInfoLookUp = "collectRemFeeMsgTasks";
+const messageTypes = {
+    setScriptRunStatus: "Set up script running status.",
+    updateTaskDB: "Update task database."
+}
+
+const msgNotReady = "N/A";
 
 let lastTimestamp = 0;
 let counter = 0;
@@ -39,330 +69,333 @@ function generateUniqueId() {
     return `${now}-${counter}`;
 }
 
-chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
+const processQueue = (queue, queueType)=>{
+//#region Local Storage Reference
+/*
+        chrome.storage.local
 
-    const processQueue = ()=>{
+
+
+    key: localStorageKeys.taskDataBase
+
+
+
+    value: 
+
+    {
+
+    “remFeeCollect”: {
+
+        “1234”:{
+
+        taskStatus: “pending”,
+
+        messageInputs: {…….},
+
+        message: “N/A”
+
+        }
+
+        [orderID]: {
+
+        taskStatus: [status],
+
+        messageInputs: {…….},
+
+        message: [pre-written message]
+
+        }
+
+        }
+
+    }
+
+    key: localStorageKeys.scriptRunningStatusesDB
+
+
+
+    value:
+
+    {
+
+
+
+        [scriptName]: runningStatus
+
+
+
+        remFeeDetection: “Running”
+
+
+
+        remFeeFetch: “Stopped”
+
+
+
+    }
+*/
+//#endregion
+    
+    if(queueType == localStorageKeys.taskDataBase){
         //if there is no more message in the queue
-        if(taskStatQueue.length === 0){
-            isProcessing = false;
+        if(queue.length === 0){
+            isProcessingBooleans.isProcessingTaskDB = false;
             return;
         }
-        //else if there's still msg left for processing
-        isProcessing = true;
-        const currentTask = taskStatQueue.shift();
-        /* currentMsg ==
+        const currentItem = queue.shift();
+
+        //#region definitions
+        /*
+            MESSAGE LOOKS LIKE THIS
             {
-            "signal": "Task Detected",
-            "info": {[orderID]: taskStatus} or {"1234":"Available"}
+                type: messageTypes.updateTaskDB, 
+                info: {
+                    taskType: taskType,
+                    orderID: [orderID],
+                    taskStatus: taskStatus,
+                    **below is optional**
+                    messageInputs: messageInputs,
+                    message: msgNotReady
+                }
             }
-    
-            taskInfoDB == 
+            key: localStorageKeys.taskDataBase
+
+
+
+            value: 
+
             {
-            "1234":"pending",
-            "3456": "available",
-            "7890": "Undoable",
-            .........
+                [taskType]:{
+                    [orderID]:{
+                        taskStatus:"pending",
+                        messageInputs: {},
+                        message: "N/A"
+                    }
             }
-    
+
+            “remFeeCollect”: {
+
+                “1234”:{
+
+                taskStatus: “pending”,
+
+                messageInputs: {…….},
+
+                message: “N/A”
+
+            }
         */
-        //get the info from local storage fist
-        chrome.storage.local.get(taskInfoLookUp, (result)=>{
-            //the following code will be executed asynchronously
-            let taskInfoDB = result[taskInfoLookUp];
-            if(taskInfoDB){
-                const taskInfoDBUpdated = Object.assign(taskInfoDB, currentTask)
-                const finalOutput = {[taskInfoLookUp]: taskInfoDBUpdated};
+        //currentItem is the raw message.info
+        const taskType = currentItem.taskType;
+        const status = currentItem.taskStatus;
+        const orderID = currentItem.orderID;
+        let messageInputs;
+        let msg;
+        let relevantDetails = {};
+        if(currentItem.messageInputs){
+            messageInputs = currentItem.messageInputs;
+            Object.assign(relevantDetails, { messageInputs: messageInputs });
+        }
+        if(currentItem.message){
+            msg = currentItem.message
+            Object.assign(relevantDetails, { message: msg });
+        }
+
+        Object.assign(relevantDetails, { taskStatus: status });
+
+        relevantDetails = {[orderID]:relevantDetails};
+
+        const taskTypeDBInit = { [taskType]: relevantDetails};
+
+
+        //#endregion
+        //else if there's still msg left for processing
+        isProcessingBooleans.isProcessingTaskDB = true;
+        
+        chrome.storage.local.get(localStorageKeys.taskDataBase, (result)=>{
+            if(result[localStorageKeys.taskDataBase]){
+                const taskInfoDB = result[localStorageKeys.taskDataBase];
+                if(taskInfoDB[taskType]){
+                    const remFeeDB = taskInfoDB[taskType];
+                    if(remFeeDB[orderID]){
+                        const remFeeTaskInfo = remFeeDB[orderID];
+                        Object.assign(remFeeTaskInfo, relevantDetails[orderID]);
+                        const newRemFeeDBItem = {[orderID]: remFeeTaskInfo};
+                        Object.assign(remFeeDB, newRemFeeDBItem);
+                        const newTaskInfoDBItem = {[taskType]: remFeeDB};
+                        Object.assign(taskInfoDB, newTaskInfoDBItem);
+                        const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB}
+                        chrome.storage.local(finalOutput, ()=>{
+                            processQueue(queue, queueType);
+                        })
+                    }
+                    else{
+                        Object.assign(remFeeDB, relevantDetails);
+                        const remFeeDBUpdated = {[taskType]: remFeeDB};
+                        Object.assign(taskInfoDB, remFeeDBUpdated);
+                        const finalOutput = { [localStorageKeys.taskDataBase]: taskInfoDB }
+                        chrome.storage.local.set(finalOutput, ()=>{
+                            processQueue(queue, queueType);
+                        });
+                    }
+                }
+                else{
+                    Object.assign(taskInfoDB, taskTypeDBInit)
+                    const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB};
+                    chrome.storage.local.set(finalOutput, ()=>{
+                        processQueue(queue, queueType);
+                    })
+                }
+                /*
+                const taskInfoDBUpdated = Object.assign(taskInfoDB, currentItem)
+                const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDBUpdated};
                 chrome.storage.local.set(finalOutput, ()=>{
-                    console.log(`Task added: ${JSON.stringify(finalOutput[taskInfoLookUp])}`, "Moving onto the next msg...");
-                    processQueue();
+                    console.log(`Task added: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                    processQueue(queue, queueType);
                 });
+                */
             }
             else{
-                const finalOutput = {[taskInfoLookUp]: currentTask};
+                const finalOutput = {[localStorageKeys.taskDataBase]: taskTypeDBInit};
                 chrome.storage.local.set(finalOutput, ()=>{
-                    console.log(`Task database initiated: ${JSON.stringify(finalOutput[taskInfoLookUp])}`, "Moving onto the next msg...");
-                    processQueue();
+                    // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                    processQueue(queue, queueType);
                 });
             }
         })
     }
-    async function readThenWrite (){
-        let status;
-        let orderID;
-        let msgSender
-        if(message.sender){
-            msgSender = message.sender;
+
+    else if (queueType == localStorageKeys.scriptRunningStatusesDB){
+        //if there is no more message in the queue
+        console.log(`Selected for queue type:${JSON.stringify(queueType)}`);
+        if(queue.length === 0){
+            console.log(`Queue length is 0:${JSON.stringify(queue)}`);
+            isProcessingBooleans.isProcessingScriptStatus = false;
+            return;
         }
-    
-    
-        if(message.info){
-            status = Object.values(message.info)[0];
-            orderID = Object.keys(message.info)[0];
+        const currentItem = queue.shift();
+        console.log(`currently processing item: ${JSON.stringify(currentItem)}`);
+        //process script running status queue
+        console.log(`Queue started processing.`)
+        chrome.storage.local.get(localStorageKeys.scriptRunningStatusesDB, (result)=>{
+            if(result[localStorageKeys.scriptRunningStatusesDB]){
+                const currentStorageObj = result[localStorageKeys.scriptRunningStatusesDB]
+                Object.assign(currentStorageObj, currentItem)
+                const finalPayLoad = {[localStorageKeys.scriptRunningStatusesDB]: currentStorageObj}
+                chrome.storage.local.set(finalPayLoad, ()=>{
+                    processQueue(queue, queueType);
+                })
+            }
+            else{
+                const finalPayLoad = {[localStorageKeys.scriptRunningStatusesDB]: currentItem};
+                chrome.storage.local.set(finalPayLoad, ()=>{
+                    processQueue(queue, queueType);
+                })
+            }
+        })
+    }
+}
+
+//#endregion
+
+chrome.runtime.onMessage.addListener((message, senderObject) =>{
+    //#region reference
+        /*
+            {
+                type: messageTypes.updateTaskDB, 
+                info: {
+                    taskType: taskType,
+                    orderID: [orderID],
+                    taskStatus: taskStatus,
+                    messageInputs: messageInputs,
+                    message: msgNotReady
+                }
+            }
+        */
+    //#endregion
+
+    if(message.type == messageTypes.updateTaskDB){
+        //#region definitions
+        function sendAvailableNotification(){
+            return new Promise ((resolve, reject)=>{
+                const notificationID = generateUniqueId();
+                notificationURLs[notificationID] = `https://northcms.wenzo.com/order/${orderID}`;      
+                chrome.notifications.create(notificationID, {
+                    title: "New Collect Remaining Fees Task Available",
+                    message: `Order ID: ${orderID}`,
+                    iconUrl:"images/icon-48.png",
+                    type: "basic"
+                }, ()=>{
+                    if(chrome.runtime.lastError){
+                        reject("Failed to create notification")
+                    }
+                    else{
+                        resolve("notification created successfully.")
+                    }
+                })
+            })
+
+        }
+        // console.log(`message received: ${data}`)
+        // console.log(`senderObject received: ${senderObject}`)
+        
+        
+        function removeTab(){
+            return new Promise((resolve, reject)=>{
+                chrome.tabs.remove(tabID, ()=>{
+                    if(chrome.runtime.lastError){
+                        reject(`failed to close tab for ${orderID}`);
+                    }
+                    else{
+                        resolve(`tab closed successfully for ${orderID}`);
+                    }
+                });
+            })
         }
 
+        function updateTaskDB (){
+            queues[localStorageKeys.taskDataBase].queue.push(message.info);
+            // sendResponse(`Task ${message.info}sent to queue for storage.`);
+            if(!isProcessingBooleans.isProcessingTaskDB){
+                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType);
+            }
+
+        }
+        // console.log(`message received: ${JSON.stringify(message)}`);
+        //get the orderID
+        const orderID = message.info.orderID
         //get the tab ID of the opened tab
         const{ tab } = senderObject;
         const tabID = tab.id;
-        // wait to retrieve the old status
-        const oldStatus = await new Promise((resolve)=>{
-            chrome.storage.local.get(taskInfoLookUp, (result)=>{
-                if(result[taskInfoLookUp]){
-                    resolve(result[taskInfoLookUp][orderID]);
-                }
-                else{
-                    resolve("N/A")
-                }
-            })
-        })
-        // do nothing if the current status is the same as the old status.
-        if (oldStatus !== message.info[orderID]){
-            let signal = message.signal;
-            console.log(`signal: ${signal}`); 
-            //wrap chrome.notifications inside of a promise, so we can wait for it to resolve. 
-    
-            //parse out the message
-        
-            /* 
-            message === {
-            signal: 'task detected',
-            info:{[orderID]:"Pending"}
-            }
-            */
-        
-
-            function sendAvailableNotification(){
-                return new Promise ((resolve, reject)=>{
-                    const notificationID = generateUniqueId();
-                    notificationURLs[notificationID] = `https://northcms.wenzo.com/order/${orderID}`;      
-                    chrome.notifications.create(notificationID, {
-                        title: "New Collect Remaining Fees Task Available",
-                        message: `Order ID: ${orderID}`,
-                        iconUrl:"images/icon-48.png",
-                        type: "basic"
-                    }, ()=>{
-                        if(chrome.runtime.lastError){
-                            reject("Failed to create notification")
-                        }
-                        else{
-                            resolve("notification created successfully.")
-                        }
-                    })
-                })
-        
-            }
-            // console.log(`message received: ${data}`)
-            // console.log(`senderObject received: ${senderObject}`)
-            function handleAvailableTask (){
-                //only the available ones that are either 1) not in the database or 2) shows as pending before.
-                return new Promise ((resolve, reject)=>{
-                    chrome.storage.local.get([taskInfoLookUp], (result)=>{
-                        if(result[taskInfoLookUp]){
-                            const taskInfoDB = result[taskInfoLookUp]
-                            if(taskInfoDB[orderID] !== statusAvail || (!taskInfoDB[orderID])){
-                                sendAvailableNotification()
-                                    .then((successMsg)=>{
-                                        console.log(successMsg);
-                                        resolve(`Handled new available task successfully ${orderID}.`)
-                                    })
-                                    .catch((errorMsg)=>{
-                                        console.log(errorMsg);
-                                        reject(`Failed to handle new available task ${orderID}`)
-                                    })
-                            }
-                        }
-                        else{
-                            sendAvailableNotification()
-                                .then((successMsg)=>{
-                                    console.log(successMsg);
-                                    resolve("Handled new available task successfully.")
-                                })
-                                .catch((errorMsg)=>{
-                                    console.log(errorMsg);
-                                    reject("Failed to handle new available task.")
-                                })
-                        }
-                    })
-                }) 
-        
-            }
-            
-            
-            function handleUndoableTask(tabID){
-                return new Promise((resolve, reject)=>{
-                    chrome.tabs.remove(tabID, ()=>{
-                        if(chrome.runtime.lastError){
-                            reject(`failed to close tab for ${orderID}`);
-                        }
-                        else{
-                            resolve(`tab closed successfully for ${orderID}`);
-                        }
-                    });
-                })
-            }
-        
-            //THIS ONE DOES NOT NEED TO PROCESS SENDER INFO.
-            function handleTouchedTask (tabID, msgSender) {
-                //look at if the pending msg/posted msg comes from malik zhang
-                return new Promise((resolve, reject)=>{
-                    console.log(`Touched detected, message sender:${msgSender}`);
-                    if((msgSender !== taskMaster)){
-                        chrome.tabs.remove(tabID, ()=>{
-                            if(chrome.runtime.lastError){
-                                reject(`failed to remove task done by others: ${orderID}`);
-                            }
-                            else{
-                                resolve(`removed tab ${tabID}.`);
-                            }
-                        });
-                    }
-                    else{
-                        resolve(`handleTouchedTask Promise Return: done by ${taskMaster}`);
-                    } 
-                })
-        
-            
-            }
-    
-            switch(status){
-                case statusAvail:
-                    await handleAvailableTask()
-                        .then((resolution)=>{
-                            console.log(resolution)
-                        })
-                        .catch((rejection)=>{
-                            console.log(rejection)
-                        })
-                    break;
-                case statusPend:
-                    console.log(`task status pending:${orderID}`)
-                    break;
-                case statusUnavail:
-                    console.log(`Task undoable:${orderID}`);
-                    await handleUndoableTask(tabID)
-                        .then((resolution)=>{
-                            console.log(resolution);
-                        })
-                        .catch((error)=>{
-                            console.log(error);
-                        })
-                    break;
-                case statusMaster:
-                    console.log(`Touched detected ${orderID}`);
-                    await handleTouchedTask(tabID, msgSender)
-                        .then((resolution)=>{
-                            console.log(resolution);
-                        })
-                        .catch((error)=>{
-                            console.log(error);
-                        })
-                    break;
-            }
-            console.log(`Signal after switch stmt: ${signal}`);
-            console.log(`message after switch statement: ${JSON.stringify(message)}`);
-            if(signal == taskDiscoverySignal){
-                console.log("task updating...");
-                taskStatQueue.push(message.info);
-                // sendResponse(`Task ${message.info}sent to queue for storage.`);
-                if(!isProcessing){
-                    processQueue();
-                }
-            }
+        //#endregion
+        if(message.info.taskStatus == taskStatuses.statusAvail){
+            sendAvailableNotification()
+            updateTaskDB();
+        }
+        else if(message.info.taskStatus == taskStatuses.statusUnavail){
+            removeTab();
+            updateTaskDB();
         }
         else{
-            console.log("Task status was not changed since last time, nothing is done.");
-        }
-    }
-    console.log(`message received: ${JSON.stringify(message)}`);
-    if(message.event){
-        console.log(`message.event detected`);
-        if(message.event == "remFeeFetchingTask?"){
-            chrome.storage.local.get({[remFeeFetTask]:stoppedStatus}, (result)=>{
-                if(result[remFeeFetTask] == runningStatus){
-                    sendResponse(true);
-
-                }
-                else{
-                    sendResponse(false);
-
-                }
-            })
-        }
-        if(message.event == "remainingFeeCollection?"){
-            console.log("processing message.event....");
-            chrome.storage.local.get({[remFeeWatchingTask]:stoppedStatus}, (result)=>{
-                if(result[remFeeWatchingTask] == runningStatus){
-                    console.log("remaining fee task permission inquiry detected")
-                    sendResponse(true);
-                }
-                else{
-                    sendResponse(false);
-                }
-            })
+            updateTaskDB();
         }
     }
 
-    else if(message.signal){
-        readThenWrite();
-    }
-    else if(message.question){
-        if (message.question == remFeeTaskLookUp){
-            chrome.storage.local.get(taskInfoLookUp, (result)=>{
-                let taskInfoDB;
-                let accum = 0;
-                let availTasks = [];
-                let pendTask = [];
-                let undTask = [];
-                let mastTask = [];
-                if(result[taskInfoLookUp]){
-                    taskInfoDB = result[taskInfoLookUp];
-                    Object.keys(taskInfoDB).forEach((orderID)=>{
-                        accum += 1;
-                        switch (taskInfoDB[orderID]){
-                            case statusAvail:
-                                availTasks.push(orderID);
-                                break;
-                            case statusMaster:
-                                mastTask.push(orderID);
-                                break;
-                            case statusPend:
-                                pendTask.push(orderID);
-                                break;
-                            case statusUnavail:
-                                undTask.push(orderID);
-                                break;
-                        }
-
-                    })
-                    console.log(`total task number in storage: ${accum}`);
-                    console.log(`Available Tasks:`);
-                    availTasks.forEach((order)=>{
-                        console.log(order);
-                    })
-                    console.log(`Tasks done by ${taskMaster}:`);
-                    mastTask.forEach((order)=>{
-                        console.log(order);
-                    })
-                    console.log(`Pending Tasks:`);
-                    pendTask.forEach((order)=>{
-                        console.log(order);
-                    })
-                    console.log(`Undoable Tasks:`);
-                    undTask.forEach((order)=>{
-                        console.log(order);
-                    })
-                }
-                else{
-                    console.log("Nothing is in the database yet.")
-                }
-            
-            })
+    else if(message.type == messageTypes.setScriptRunStatus){
+        console.log(`entered into ${messageTypes.setScriptRunStatus} message handler`)
+        //push the message payload to its corresponding queue
+        queues[localStorageKeys.scriptRunningStatusesDB].queue.push(message.info)
+        console.log(`successfully pushed into the script status update queue ${JSON.stringify(queues[localStorageKeys.scriptRunningStatusesDB].queue)}`);
+        //if the processing hasn't started, start it.
+        if(!isProcessingBooleans.isProcessingScriptStatus){
+            console.log(`script run info queue selected for processing`);
+            processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
         }
     }
-    return true
 })
 
 chrome.storage.local.get(null, (result)=>{
-    console.log(`${JSON.stringify(result.collectRemFeeMsgTasks)}`);
+    console.log(`${JSON.stringify(result)}`);
 })
 
 chrome.notifications.onClicked.addListener((notificationId)=>{
