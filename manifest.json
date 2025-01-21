@@ -9,7 +9,7 @@
   
     
     "action":{
-      "default_popup": "popup/popupBeta.html"
+      "default_popup": "popup/popup.html"
     },
   
     "icons":{
@@ -35,7 +35,9 @@
   
       "notifications",
 
-      "storage"
+      "storage",
+
+      "windows"
     ],
 
     "content_scripts": [

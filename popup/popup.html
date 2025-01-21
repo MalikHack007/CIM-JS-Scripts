@@ -1,123 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic User Input Form</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Local Storage</title>
+    <link rel="stylesheet" href="bulma.css">
 </head>
 <body>
-  <h1>User Input Form</h1>
-  <form id="userForm" action="#" method="post">
-    <!-- isCaseSpecific -->
-    <label>Is Case Specific:</label><br>
-    <input type="radio" name="isCaseSpecific" value="yes" required> Yes
-    <input type="radio" name="isCaseSpecific" value="no"> No<br><br>
-
-    <!-- usersCase -->
-    <div id="usersCaseContainer" class="hidden">
-      <label>User's Case:</label><br>
-      <select name="usersCase">
-        <option value="NA">N/A</option>
-        <option value="NIW">NIW</option>
-        <option value="EB1A">EB1A</option>
-      </select><br><br>
+    <div class="tabs" id="tabBar">
+        <ul>    
+          <li class="is-active" id="controls"><a>Controls</a></li>
+          <li id = "taskList"><a>Task List</a></li>
+          <li id = "openFormTab"><a>Open Forms</a></li>
+        </ul>
     </div>
-
-    <!-- hasPaid -->
-    <label>Has Paid:</label><br>
-    <input type="radio" name="hasPaid" value="yes" required> Yes
-    <input type="radio" name="hasPaid" value="no"> No<br><br>
-
-    <!-- remainingAttorneyFee -->
-    <div id="remainingAttorneyFeeContainer" class="hidden">
-      <label>Remaining Attorney Fee:</label><br>
-      <input type="number" name="remainingAttorneyFee" min="0" step="0.01"><br><br>
+    <div id="controlPanel">
+        <div class="container m-2">
+            <button class="button is-success m-2" id="remainingFeeStart">Start Remaining Fee Task Listener</button>
+        </div>
+        <div class="container m-2">
+            <button class="button is-danger m-2" id="remainingFeeStop" disabled>Stop Remaining Fee Task Listener</button>
+        </div>
+        
+        <div class="container m-2">
+            <button class="button is-success m-2" id="taskFetcherStart">Start Remaining Fee Task Fetcher</button>
+        </div>
+        
+        <div class = "container m-2">
+            <button class="button is-danger m-2" id="taskFetcherStop" disabled>Stop Remaining Fee Task Fetcher</button>
+        </div>
+        
+        <div class="container m-2">
+            <button class="button is-danger m-2" id="clearLocal" disabled>clear all local storage</button>
+        </div>
     </div>
-
-    <!-- isPp -->
-    <label>Is Premium Processing (PP):</label><br>
-    <input type="radio" name="isPp" value="yes" required> Yes
-    <input type="radio" name="isPp" value="no"> No<br><br>
-
-    <!-- users case again -->
-    <div id="usersCaseContainer" class="hidden usersCase2">
-      <label>User's Case:</label><br>
-      <select name="usersCase">
-        <option value="NA">N/A</option>
-        <option value="NIW">NIW</option>
-        <option value="EB1A">EB1A</option>
-      </select><br><br>
+    <div id="TaskStatusInfo" style = "display: none;" >
+          <div class="columns is-mobile" id = "taskStatusCols">
+          </div>
     </div>
-
-    <!-- countryOfBirth -->
-    <div id="countryOfBirthContainer" class="hidden">
-      <label>Country of Birth:</label><br>
-      <select name="countryOfBirth">
-        <option value="NA">N/A</option>
-        <option value="India">India</option>
-        <option value="China">China</option>
-      </select><br><br>
+    <div id="formActivateBtns" style = "display: none;" >
+        <div class="container m-2">
+            <button class="button is-success m-2" id="openRemFeeColMsgForm">Open Remaining Fee Collection Message Form</button>
+        </div>
     </div>
-
-    <!-- priorityDateIsCurrent -->
-    <div id="priorityDateIsCurrentContainer" class="hidden">
-      <label>Priority Date is Current:</label><br>
-      <input type="radio" name="priorityDateIsCurrent" value="yes"> Yes
-      <input type="radio" name="priorityDateIsCurrent" value="no"> No<br><br>
-    </div>
-
-    <!-- anotherPriorityDate -->
-    <div id="anotherPriorityDateContainer" class="hidden">
-      <label>Another Priority Date?</label><br>
-      <input type="radio" name="anotherPriorityDate" value="yes"> Yes
-      <input type="radio" name="anotherPriorityDate" value="no"> No<br><br>
-    </div>
-
-    <!-- priorityDate -->
-    <div id="priorityDateContainer" class="hidden">
-      <label>Priority Date:</label><br>
-      <input type="date" name="priorityDate"><br><br>
-    </div>
-
-    <!-- isInsideUS -->
-    <div id="isInsideUSContainer" class="hidden">
-      <label>Is Inside US:</label><br>
-      <input type="radio" name="isInsideUS" value="yes"> Yes
-      <input type="radio" name="isInsideUS" value="no"> No<br><br>
-    </div>
-
-    <!-- h1bIsExpiring -->
-    <div id="h1bIsExpiringContainer" class="hidden">
-      <label>H1B is Expiring:</label><br>
-      <input type="radio" name="h1bIsExpiring" value="yes"> Yes
-      <input type="radio" name="h1bIsExpiring" value="no"> No<br><br>
-    </div>
-
-    <!-- serviceCenter -->
-    <div id="serviceCenterContainer" class="hidden">
-      <label>Service Center:</label><br>
-      <select name="serviceCenter">
-        <option value="NA">N/A</option>
-        <option value="Nebraska">Nebraska Service Center</option>
-        <option value="Texas">Texas Service Center</option>
-      </select><br><br>
-    </div>
-
-    <!-- processingTime -->
-    <div id="processingTimeContainer" class="hidden">
-      <label>Processing Time (in days):</label><br>
-      <input type="number" name="processingTime" min="0"><br><br>
-    </div>
-
-    <!-- isFurtherInquiry -->
-    <label>Is Further Inquiry Needed:</label><br>
-    <input type="radio" name="isFurtherInquiry" value="yes" required> Yes
-    <input type="radio" name="isFurtherInquiry" value="no"> No<br><br>
-
-    <!-- Submit Button -->
-    <button type="submit">Submit</button>
-  </form>
-  <script src="script.js"></script>
 </body>
+<script src="popup.js"></script>
 </html>
