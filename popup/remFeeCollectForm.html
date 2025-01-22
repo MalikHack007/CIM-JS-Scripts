@@ -10,178 +10,46 @@
   
   <div class="container">
       <div class="columns is-centered">
-          <div class="column is-half is-flex is-align-items-center is-justify-content-center">
-              <div>
-                  <h1 class="title is-2">User Input Form</h1>  
-                  <fieldset class="box">
-                      <legend class="title is-4">A grouping</legend>
-                      <!-- isCaseSpecific -->
-                      <div class="field">
-                        <label class="label">
-                            Is it case specific?
-                            <div class="control">
-                                <label class="radio">
-                                <input type="radio" name="isCaseSpecific" value="yes">
-                                Yes
-                                </label>
-                                <label class="radio">
-                                <input type="radio" name="isCaseSpecific" value="no">
-                                No
-                                </label>
-                            </div>
-                        </label>
-                      </div>
-                      <!-- usersCase -->
-                      <div class="field">
-                        <label class="label" for="usersCase1">User's Case</label>
-                        <div class="control">
-                          <div class="select">
-                            <select name="usersCase" id="usersCase1">
-                              <option value="N/A">N/A</option>
-                              <option value="NIW">NIW</option>
-                              <option value="EB1A">EB1A</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                      <!-- hasPaidAttyFee -->
-                      <div class="field">
-                        <label class="label">
-                            Remaining attorney fees paid?
-                            <div class="control">
-                                <label class="radio">
-                                <input type="radio" name="hasPaid" value="yes">
-                                Yes
-                                </label>
-                                <label class="radio">
-                                <input type="radio" name="hasPaid" value="no">
-                                No
-                                </label>
-                            </div>
-                        </label>
-                      </div>
-                  </fieldset>
-                  <!-- atty fee amount -->
-                  <div class="field">
-                    <label class="label" for="remAttyFee">Remaining Attorney Fee</label>
-                    <div class="control">
-                      <input class="input" type="number" placeholder="2,500" name="remainingAttorneyFee" id="remAttyFee">
-                    </div>
-                  </div>
-                  <!-- discount? -->
+        <div class="column">
+          <div class="has-text-centered">
+            <h1 class="title is-2">User Input Form</h1>
+          </div>
+        </div> 
+      </div>
+      <form class="columns is-centered" id="remFeeMsgInputForm">
+        <!-- is-half is-flex is-align-items-center is-justify-content-center -->
+          <div class="column">
+            <div>
+              <fieldset class="box">
+                  <legend class="has-text-weight-bold is-size-3">Messages</legend>
+                  <!-- isCaseSpecific -->
                   <div class="field">
                     <label class="label">
-                        Will there be a discount applied to the filing fee?
+                        Is it case specific?
                         <div class="control">
                             <label class="radio">
-                            <input type="radio" name="isFilingFeeCredit" value="yes">
+                            <input type="radio" name="isCaseSpecific" value="y">
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="isFilingFeeCredit" value="no">
+                            <input type="radio" name="isCaseSpecific" value="no" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
-                  <!-- discount Type -->
-                  <div class="field">
-                    <label class="label" for="filing-credit-type">Credit Type</label>
+                  <!-- usersCase hide--> 
+                  <div class="field is-hidden" id="userCase1">
+                    <label class="label" for="usersCase1">User's Case</label>
                     <div class="control">
                       <div class="select">
-                        <select name="filingFeeCreditType" id="filing-credit-type">
-                          <option value="N/A">N/A</option>
-                          <option value="overpayment">overpayment</option>
-                          <option value="discount">discount</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- enter discount amount -->
-                  <div class="field">
-                    <label class="label" for="filing-fee-amt">Enter the discount amount:</label>
-                    <div class="control">
-                      <input class="input" type="number" placeholder="300" name="filingFeeCredit" id="filing-fee-amt">
-                    </div>
-                  </div>
-                  <!-- directPP? -->
-                  <div class="field">
-                    <label class="label">
-                        Direct PP?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="isPp" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="isPp" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-                  <!-- usersCase 2 -->
-                  <div class="field">
-                    <label class="label" for="usersCase2">User's Case</label>
-                    <div class="control">
-                      <div class="select">
-                        <select name="usersCase" id="usersCase2">
-                          <option value="N/A">N/A</option>
+                        <select name="usersCase" id="usersCase1" disabled>
+                          <option value="N/A" selected>N/A</option>
                           <option value="NIW">NIW</option>
                           <option value="EB1A">EB1A</option>
                         </select>
                       </div>
                     </div>
-                  </div>
-                  <!-- countryOfBirth -->
-                  <div class="field">
-                    <label class="label" for="birth-country">Client's Country of Birth</label>
-                    <div class="control">
-                      <div class="select">
-                        <select name="countryOfBirth" id="birth-country">
-                          <option value="N/A">N/A</option>
-                          <option value="India">India</option>
-                          <option value="China">China</option>
-                          <option value="ROW">ROW</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- ppInfoProvided? -->
-                  <div class="field">
-                    <label class="label">
-                        Has PP Info been provided to the client?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="ppInfoIsProvided" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="ppInfoIsProvided" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-              </div>
-          </div>
-          <div class="column is-half is-flex is-align-items-center is-justify-content-center">
-              <div>
-                  <!-- has complained? -->
-                  <div class="field">
-                    <label class="label">
-                        Has the client complained before?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="hasComplained" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="hasComplained" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
                   </div>
                   <!-- unresolved inquiry? -->
                   <div class="field">
@@ -189,232 +57,296 @@
                         Does the client have any unresolved inquiry?
                         <div class="control">
                             <label class="radio">
-                            <input type="radio" name="isFurtherInquiry" value="yes">
+                            <input type="radio" name="isFurtherInquiry" value="y">
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="isFurtherInquiry" value="no">
+                            <input type="radio" name="isFurtherInquiry" value="no" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
-                  <!-- isInTheUS? -->
+                  <!-- has complained? -->
                   <div class="field">
                     <label class="label">
-                        Is the client inside the US?
+                        Has the client complained before?
                         <div class="control">
                             <label class="radio">
-                            <input type="radio" name="isInsideUS" value="yes">
+                            <input type="radio" name="hasComplained" value="y">
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="isInsideUS" value="no">
+                            <input type="radio" name="hasComplained" value="no" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
-                  <!-- isOnExpiringH1B? -->
+                  <!-- ppInfoProvided? -->
                   <div class="field">
                     <label class="label">
-                        Is the client currently on an H1B visa expiring within 1.5 years?
+                        Has PP Info been provided to the client?
                         <div class="control">
                             <label class="radio">
-                            <input type="radio" name="h1bIsExpiring" value="yes">
+                            <input type="radio" name="ppInfoIsProvided" value="y">
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="h1bIsExpiring" value="no">
+                            <input type="radio" name="ppInfoIsProvided" value="no" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
-                  <!-- anotherPD? -->
-                  <div class="field">
-                    <label class="label">
-                        Does the client have another priority date?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="anotherPriorityDate" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="anotherPriorityDate" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-                  <!-- PD Date from another PD -->
-                  <div class="field">
-                    <label class="label" for="anotherPD">Enter the earlier PD:</label>
-                    <div class="control">
-                      <input class="input" type="date" name="exactPriorityDate" id="anotherPD">
-                    </div>
-                  </div>
-                  <!-- is the PD current? -->
-                  <div class="field">
-                    <label class="label">
-                        Is this priority date current?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="priorityDateIsCurrent" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="priorityDateIsCurrent" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-                  <!-- PD is approved? -->
-                  <div class="field">
-                    <label class="label">
-                        Is this priority date from an approved petition?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="isOtherPDApproved" value="yes">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="isOtherPDApproved" value="no">
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-                  <!-- which service center? -->
-                  <div class="field">
-                    <label class="label" for="service-center">Which service center is processing the case?</label>
-                    <div class="control">
-                      <div class="select">
-                        <select name="serviceCenter" id="service-center">
-                          <option value="N/A">N/A</option>
-                          <option value="Texas Service Center">Texas Service Center</option>
-                          <option value="Nebraska Service Center">Nebraska Service Center</option>
-                        </select>
+              </fieldset>
+              <fieldset class="box">
+                <legend class="has-text-weight-bold is-size-3">Client Record</legend>
+                <!-- directPP? -->
+                <div class="field">
+                  <label class="label">
+                      Direct PP?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="isPp" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="isPp" value="no" checked>
+                          No
+                          </label>
                       </div>
+                  </label>
+                </div>
+                <!-- usersCase 2 -->
+                <div class="field is-hidden" id="userCase2">
+                  <label class="label" for="usersCase2">User's Case</label>
+                  <div class="control">
+                    <div class="select">
+                      <select name="usersCase" id="usersCase2" disabled>
+                        <option value="N/A" selected>N/A</option>
+                        <option value="NIW">NIW</option>
+                        <option value="EB1A">EB1A</option>
+                      </select>
                     </div>
                   </div>
-                  <!-- Processing Time -->
-                  <div class="field">
-                    <label class="label" for="processing-time">Processing Time (Months)</label>
-                    <div class="control">
-                      <input class="input" type="number" placeholder="13" name="processingTime" id="processing-time">
+                </div>
+                <!-- countryOfBirth -->
+                <div class="field is-hidden" id="countryOBirth">
+                  <label class="label" for="birth-country">Client's Country of Birth</label>
+                  <div class="control">
+                    <div class="select">
+                      <select name="countryOfBirth" id="birth-country">
+                        <option value="N/A" selected>N/A</option>
+                        <option value="India">India</option>
+                        <option value="China">China</option>
+                        <option value="ROW">ROW</option>
+                      </select>
                     </div>
                   </div>
-              </div>  
+                </div>
+                <!-- isInTheUS? -->
+                <div class="field is-hidden" id="inTheUS">
+                  <label class="label">
+                      Is the client inside the US?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="isInsideUS" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="isInsideUS" value="no" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
+                <!-- isOnExpiringH1B? -->
+                <div class="field is-hidden" id="isH1BExp">
+                  <label class="label">
+                      Is the client currently on an H1B visa expiring within 1.5 years?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="h1bIsExpiring" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="h1bIsExpiring" value="no" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
+              </fieldset> 
+            </div>
           </div>
+
+          <div class="column">
+            <fieldset class="box">
+              <legend class="has-text-weight-bold is-size-3">Billing Info</legend>
+                <!-- hasPaidAttyFee -->
+                <div class="field">
+                  <label class="label">
+                      Remaining attorney fees paid?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="hasPaid" value="y" checked>
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="hasPaid" value="no">
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
+                <!-- atty fee amount -->
+                <div class="field">
+                  <label class="label" for="remAttyFee">Remaining Attorney Fee</label>
+                  <div class="control">
+                    <input class="input" type="number" name="remainingAttorneyFee" id="remAttyFee" value="0">
+                  </div>
+                </div>
+                <!-- discount? -->
+                <div class="field">
+                  <label class="label">
+                      Will there be a discount applied to the filing fee?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="isFilingFeeCredit" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="isFilingFeeCredit" value="no" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
+                <!-- discount Type -->
+                <div class="field">
+                  <label class="label" for="filing-credit-type">Credit Type</label>
+                  <div class="control">
+                    <div class="select">
+                      <select name="filingFeeCreditType" id="filing-credit-type">
+                        <option value="N/A" selected>N/A</option>
+                        <option value="overpayment">overpayment</option>
+                        <option value="discount">discount</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <!-- enter discount amount -->
+                <div class="field">
+                  <label class="label" for="filing-fee-amt">Enter the discount amount:</label>
+                  <div class="control">
+                    <input class="input" type="number" name="filingFeeCredit" id="filing-fee-amt" value="0">
+                  </div>
+                </div>
+            </fieldset>
+            <fieldset class="box is-hidden" id="additPPInfo">
+              <legend class="has-text-weight-bold is-size-3">Additional PP Info</legend>
+              <!-- anotherPD? -->
+              <div class="field">
+                <label class="label">
+                    Does the client have another priority date?
+                    <div class="control">
+                        <label class="radio">
+                        <input type="radio" name="anotherPriorityDate" value="y">
+                        Yes
+                        </label>
+                        <label class="radio">
+                        <input type="radio" name="anotherPriorityDate" value="no" checked>
+                        No
+                        </label>
+                    </div>
+                </label>
+              </div>
+              <!-- PD Date from another PD -->
+              <div class="field">
+                <label class="label" for="anotherPD">Enter the earlier PD:</label>
+                <div class="control">
+                  <input class="input" type="date" name="exactPriorityDate" id="anotherPD">
+                </div>
+              </div>
+              <!-- is the PD current? -->
+              <div class="field">
+                <label class="label">
+                    Is this priority date current?
+                    <div class="control">
+                        <label class="radio">
+                        <input type="radio" name="priorityDateIsCurrent" value="y">
+                        Yes
+                        </label>
+                        <label class="radio">
+                        <input type="radio" name="priorityDateIsCurrent" value="no" checked>
+                        No
+                        </label>
+                    </div>
+                </label>
+              </div>
+              <!-- PD is approved? -->
+              <div class="field">
+                <label class="label">
+                    Is this priority date from an approved petition?
+                    <div class="control">
+                        <label class="radio">
+                        <input type="radio" name="isOtherPDApproved" value="y">
+                        Yes
+                        </label>
+                        <label class="radio">
+                        <input type="radio" name="isOtherPDApproved" value="no" checked>
+                        No
+                        </label>
+                    </div>
+                </label>
+              </div>
+              <!-- which service center? -->
+              <div class="field">
+                <label class="label" for="service-center">Which service center is processing the case?</label>
+                <div class="control">
+                  <div class="select">
+                    <select name="serviceCenter" id="service-center">
+                      <option value="N/A" selected>N/A</option>
+                      <option value="Texas Service Center">Texas Service Center</option>
+                      <option value="Nebraska Service Center">Nebraska Service Center</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <!-- Processing Time -->
+              <div class="field">
+                <label class="label" for="processing-time">Processing Time (Months)</label>
+                <div class="control">
+                  <input class="input" type="number" placeholder="13" name="processingTime" id="processing-time">
+                </div>
+              </div> 
+            </fieldset>
+          </div>
+
+      </form>
+      <div class="columns is-centered">
+        <div class="column">
+          <div class="field is-grouped is-grouped-centered">
+            <p class="control">
+              <button class="button is-primary is-large" id="msgPreload">
+                PreLoad Message
+              </button>
+            </p>
+            <p class="control">
+              <button class="button is-warning is-large" id="msgEnter">
+                Enter Message
+              </button>
+            </p>
+            <p class="control">
+              <button class="button is-primary is-large" id="Test">
+                Test Button
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
   </div>
-
-
-
-    <!-- <div id="usersCaseContainer" class="hidden">
-      <label>User's Case:</label><br>
-      <select name="usersCase">
-        <option value="NA">N/A</option>
-        <option value="NIW">NIW</option>
-        <option value="EB1A">EB1A</option>
-      </select><br><br>
-    </div>
-
-
-    <label>Has Paid:</label><br>
-    <input type="radio" name="hasPaid" value="yes" required> Yes
-    <input type="radio" name="hasPaid" value="no"> No<br><br>
-
-
-    <div id="remainingAttorneyFeeContainer" class="hidden">
-      <label>Remaining Attorney Fee:</label><br>
-      <input type="number" name="remainingAttorneyFee" min="0" step="0.01"><br><br>
-    </div>
-
-
-    <label>Is Premium Processing (PP):</label><br>
-    <input type="radio" name="isPp" value="yes" required> Yes
-    <input type="radio" name="isPp" value="no"> No<br><br>
-
-
-    <div id="usersCaseContainer" class="hidden usersCase2">
-      <label>User's Case:</label><br>
-      <select name="usersCase">
-        <option value="NA">N/A</option>
-        <option value="NIW">NIW</option>
-        <option value="EB1A">EB1A</option>
-      </select><br><br>
-    </div>
-
-
-    <div id="countryOfBirthContainer" class="hidden">
-      <label>Country of Birth:</label><br>
-      <select name="countryOfBirth">
-        <option value="NA">N/A</option>
-        <option value="India">India</option>
-        <option value="China">China</option>
-      </select><br><br>
-    </div>
-
-
-    <div id="priorityDateIsCurrentContainer" class="hidden">
-      <label>Priority Date is Current:</label><br>
-      <input type="radio" name="priorityDateIsCurrent" value="yes"> Yes
-      <input type="radio" name="priorityDateIsCurrent" value="no"> No<br><br>
-    </div>
-
-
-    <div id="anotherPriorityDateContainer" class="hidden">
-      <label>Another Priority Date?</label><br>
-      <input type="radio" name="anotherPriorityDate" value="yes"> Yes
-      <input type="radio" name="anotherPriorityDate" value="no"> No<br><br>
-    </div>
-
-
-    <div id="priorityDateContainer" class="hidden">
-      <label>Priority Date:</label><br>
-      <input type="date" name="priorityDate"><br><br>
-    </div>
-
-
-    <div id="isInsideUSContainer" class="hidden">
-      <label>Is Inside US:</label><br>
-      <input type="radio" name="isInsideUS" value="yes"> Yes
-      <input type="radio" name="isInsideUS" value="no"> No<br><br>
-    </div>
-
-
-    <div id="h1bIsExpiringContainer" class="hidden">
-      <label>H1B is Expiring:</label><br>
-      <input type="radio" name="h1bIsExpiring" value="yes"> Yes
-      <input type="radio" name="h1bIsExpiring" value="no"> No<br><br>
-    </div>
-
-
-    <div id="serviceCenterContainer" class="hidden">
-      <label>Service Center:</label><br>
-      <select name="serviceCenter">
-        <option value="NA">N/A</option>
-        <option value="Nebraska">Nebraska Service Center</option>
-        <option value="Texas">Texas Service Center</option>
-      </select><br><br>
-    </div>
-
-
-    <div id="processingTimeContainer" class="hidden">
-      <label>Processing Time (in days):</label><br>
-      <input type="number" name="processingTime" min="0"><br><br>
-    </div>
-
-
-    <label>Is Further Inquiry Needed:</label><br>
-    <input type="radio" name="isFurtherInquiry" value="yes" required> Yes
-    <input type="radio" name="isFurtherInquiry" value="no"> No<br><br>
-
-
-    <button type="submit">Submit</button> -->
 </body>
 <script src="remFeeColForm.js"></script>
 </html>

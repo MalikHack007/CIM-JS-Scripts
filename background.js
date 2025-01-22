@@ -225,7 +225,8 @@ const processQueue = (queue, queueType)=>{
                         const newTaskInfoDBItem = {[taskType]: remFeeDB};
                         Object.assign(taskInfoDB, newTaskInfoDBItem);
                         const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB}
-                        chrome.storage.local(finalOutput, ()=>{
+                        console.log(`writing into local storage(key:value)${JSON.stringify(finalOutput)}`);
+                        chrome.storage.local.set(finalOutput, ()=>{
                             processQueue(queue, queueType);
                         })
                     }
