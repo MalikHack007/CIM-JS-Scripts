@@ -17,9 +17,10 @@
         </div> 
       </div>
       <form class="columns is-centered" id="remFeeMsgInputForm">
-        <!-- is-half is-flex is-align-items-center is-justify-content-center -->
+
           <div class="column">
             <div>
+              <!-- MESSAGES -->
               <fieldset class="box">
                   <legend class="has-text-weight-bold is-size-3">Messages</legend>
                   <!-- isCaseSpecific -->
@@ -32,36 +33,7 @@
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="isCaseSpecific" value="no" checked>
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
-                  <!-- usersCase hide--> 
-                  <div class="field is-hidden" id="userCase1">
-                    <label class="label" for="usersCase1">User's Case</label>
-                    <div class="control">
-                      <div class="select">
-                        <select name="usersCase" id="usersCase1" disabled>
-                          <option value="N/A" selected>N/A</option>
-                          <option value="NIW">NIW</option>
-                          <option value="EB1A">EB1A</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- unresolved inquiry? -->
-                  <div class="field">
-                    <label class="label">
-                        Does the client have any unresolved inquiry?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="isFurtherInquiry" value="y">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="isFurtherInquiry" value="no" checked>
+                            <input type="radio" name="isCaseSpecific" value="n" checked>
                             No
                             </label>
                         </div>
@@ -77,29 +49,47 @@
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="hasComplained" value="no" checked>
+                            <input type="radio" name="hasComplained" value="n" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
-                  <!-- ppInfoProvided? -->
-                  <div class="field">
+                  <!-- unresolved inquiry? -->
+                  <div class="field" id="inquiryField-wrapper">
                     <label class="label">
-                        Has PP Info been provided to the client?
+                        Does the client have any unresolved inquiry?
                         <div class="control">
                             <label class="radio">
-                            <input type="radio" name="ppInfoIsProvided" value="y">
+                            <input type="radio" name="isFurtherInquiry" value="y">
                             Yes
                             </label>
                             <label class="radio">
-                            <input type="radio" name="ppInfoIsProvided" value="no" checked>
+                            <input type="radio" name="isFurtherInquiry" value="n" checked>
                             No
                             </label>
                         </div>
                     </label>
                   </div>
               </fieldset>
+                <!-- usersCase hide--> 
+              <fieldset class="box" id="caseTypeField-wrapper">
+                <legend class="has-text-weight-bold is-size-3">Case Type</legend>
+                <div class="field" id="userCase1">
+                  <label class="label" for="usersCase1">User's Case</label>
+                  <div class="control">
+                    <div class="select">
+                      <select name="usersCase" id="usersCase1">
+                        <option value="N/A" selected>N/A</option>
+                        <option value="NIW">NIW</option>
+                        <option value="EB1A">EB1A</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p class="help is-danger" id="usersCase1Warning-wrapper">Please select a valid case type.</p>
+                </div>
+              </fieldset>
+              <!-- Client Record -->
               <fieldset class="box">
                 <legend class="has-text-weight-bold is-size-3">Client Record</legend>
                 <!-- directPP? -->
@@ -112,27 +102,30 @@
                           Yes
                           </label>
                           <label class="radio">
-                          <input type="radio" name="isPp" value="no" checked>
+                          <input type="radio" name="isPp" value="n" checked>
                           No
                           </label>
                       </div>
                   </label>
                 </div>
-                <!-- usersCase 2 -->
-                <div class="field is-hidden" id="userCase2">
-                  <label class="label" for="usersCase2">User's Case</label>
-                  <div class="control">
-                    <div class="select">
-                      <select name="usersCase" id="usersCase2" disabled>
-                        <option value="N/A" selected>N/A</option>
-                        <option value="NIW">NIW</option>
-                        <option value="EB1A">EB1A</option>
-                      </select>
-                    </div>
-                  </div>
+                <!-- ppInfoProvided? -->
+                <div class="field" id="ppInfoPvdedField-wrapper">
+                  <label class="label">
+                      Has PP Info been provided to the client?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="ppInfoIsProvided" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="ppInfoIsProvided" value="n" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
                 </div>
                 <!-- countryOfBirth -->
-                <div class="field is-hidden" id="countryOBirth">
+                <div class="field" id="countryOfBirthField-wrapper">
                   <label class="label" for="birth-country">Client's Country of Birth</label>
                   <div class="control">
                     <div class="select">
@@ -144,9 +137,10 @@
                       </select>
                     </div>
                   </div>
+                  <p class="help is-danger" id="countryOfBirthWarning-wrapper">Please enter a valid country of birth</p>
                 </div>
                 <!-- isInTheUS? -->
-                <div class="field is-hidden" id="inTheUS">
+                <div class="field" id="isInTheUSField-wrapper">
                   <label class="label">
                       Is the client inside the US?
                       <div class="control">
@@ -155,14 +149,14 @@
                           Yes
                           </label>
                           <label class="radio">
-                          <input type="radio" name="isInsideUS" value="no" checked>
+                          <input type="radio" name="isInsideUS" value="n" checked>
                           No
                           </label>
                       </div>
                   </label>
                 </div>
                 <!-- isOnExpiringH1B? -->
-                <div class="field is-hidden" id="isH1BExp">
+                <div class="field" id="h1BIsExpiringField-wrapper">
                   <label class="label">
                       Is the client currently on an H1B visa expiring within 1.5 years?
                       <div class="control">
@@ -171,7 +165,7 @@
                           Yes
                           </label>
                           <label class="radio">
-                          <input type="radio" name="h1bIsExpiring" value="no" checked>
+                          <input type="radio" name="h1bIsExpiring" value="n" checked>
                           No
                           </label>
                       </div>
@@ -182,6 +176,7 @@
           </div>
 
           <div class="column">
+            <!-- Billing Info -->
             <fieldset class="box">
               <legend class="has-text-weight-bold is-size-3">Billing Info</legend>
                 <!-- hasPaidAttyFee -->
@@ -194,18 +189,19 @@
                           Yes
                           </label>
                           <label class="radio">
-                          <input type="radio" name="hasPaid" value="no">
+                          <input type="radio" name="hasPaid" value="n">
                           No
                           </label>
                       </div>
                   </label>
                 </div>
                 <!-- atty fee amount -->
-                <div class="field">
+                <div class="field" id="attyFeeAmtField-wrapper">
                   <label class="label" for="remAttyFee">Remaining Attorney Fee</label>
                   <div class="control">
                     <input class="input" type="number" name="remainingAttorneyFee" id="remAttyFee" value="0">
                   </div>
+                  <p class="help is-danger" id="attyFeeAmtWarning-wrapper">Please enter a valid remaining attorney fee.</p>
                 </div>
                 <!-- discount? -->
                 <div class="field">
@@ -217,14 +213,14 @@
                           Yes
                           </label>
                           <label class="radio">
-                          <input type="radio" name="isFilingFeeCredit" value="no" checked>
+                          <input type="radio" name="isFilingFeeCredit" value="n" checked>
                           No
                           </label>
                       </div>
                   </label>
                 </div>
                 <!-- discount Type -->
-                <div class="field">
+                <div class="field" id="discountTypeField-wrapper">
                   <label class="label" for="filing-credit-type">Credit Type</label>
                   <div class="control">
                     <div class="select">
@@ -235,19 +231,38 @@
                       </select>
                     </div>
                   </div>
+                  <p class="help is-danger" id="discountTypeWarning-wrapper">Please select a valid credit type.</p>
                 </div>
                 <!-- enter discount amount -->
-                <div class="field">
+                <div class="field" id="discountAmtField-wrapper">
                   <label class="label" for="filing-fee-amt">Enter the discount amount:</label>
                   <div class="control">
                     <input class="input" type="number" name="filingFeeCredit" id="filing-fee-amt" value="0">
                   </div>
+                  <p class="help is-danger" id="discountAmtWarning-wrapper">Please enter a valid amount.</p>
                 </div>
             </fieldset>
-            <fieldset class="box is-hidden" id="additPPInfo">
+            <!-- additional PP Info -->
+            <fieldset class="box" id="additionalPPInfoBox">
               <legend class="has-text-weight-bold is-size-3">Additional PP Info</legend>
+              <!-- is the PD current? -->
+              <div class="field" id="currentPDYorNField-wrapper">
+                <label class="label">
+                    Is there a current priority date?
+                    <div class="control">
+                        <label class="radio">
+                        <input type="radio" name="priorityDateIsCurrent" value="y">
+                        Yes
+                        </label>
+                        <label class="radio">
+                        <input type="radio" name="priorityDateIsCurrent" value="n" checked>
+                        No
+                        </label>
+                    </div>
+                </label>
+              </div>
               <!-- anotherPD? -->
-              <div class="field">
+              <div class="field" id="anotherPDYorNField-wrapper">
                 <label class="label">
                     Does the client have another priority date?
                     <div class="control">
@@ -256,37 +271,30 @@
                         Yes
                         </label>
                         <label class="radio">
-                        <input type="radio" name="anotherPriorityDate" value="no" checked>
+                        <input type="radio" name="anotherPriorityDate" value="n" checked>
                         No
                         </label>
                     </div>
                 </label>
               </div>
+              <!-- Case Type from another PD -->
+              <div class="field" id="earlierPDCaseType-wrapper">
+                <label class="label" for="earlierCaseType">Enter the earlier case type:</label>
+                <div class="control">
+                  <input class="input" placeholder="NIW" type="text" name="earlierCaseType">
+                </div>
+                <p class="help is-danger" id="earlierCaseTypeWarning-wrapper">Please enter a valid case type.</p>
+              </div>
               <!-- PD Date from another PD -->
-              <div class="field">
+              <div class="field" id="anotherPDDateField-wrapper">
                 <label class="label" for="anotherPD">Enter the earlier PD:</label>
                 <div class="control">
                   <input class="input" type="date" name="exactPriorityDate" id="anotherPD">
                 </div>
-              </div>
-              <!-- is the PD current? -->
-              <div class="field">
-                <label class="label">
-                    Is this priority date current?
-                    <div class="control">
-                        <label class="radio">
-                        <input type="radio" name="priorityDateIsCurrent" value="y">
-                        Yes
-                        </label>
-                        <label class="radio">
-                        <input type="radio" name="priorityDateIsCurrent" value="no" checked>
-                        No
-                        </label>
-                    </div>
-                </label>
+                <p class="help is-danger" id="pdDateWarning-wrapper">Please enter a valid prioirty date</p>
               </div>
               <!-- PD is approved? -->
-              <div class="field">
+              <div class="field" id="isAnotherPDApprovedField-wrapper">
                 <label class="label">
                     Is this priority date from an approved petition?
                     <div class="control">
@@ -295,14 +303,14 @@
                         Yes
                         </label>
                         <label class="radio">
-                        <input type="radio" name="isOtherPDApproved" value="no" checked>
+                        <input type="radio" name="isOtherPDApproved" value="n" checked>
                         No
                         </label>
                     </div>
                 </label>
               </div>
               <!-- which service center? -->
-              <div class="field">
+              <div class="field" id="serviceCenterField-wrapper">
                 <label class="label" for="service-center">Which service center is processing the case?</label>
                 <div class="control">
                   <div class="select">
@@ -313,13 +321,15 @@
                     </select>
                   </div>
                 </div>
+                <p class="help is-danger" id="serviceCenterWarning-wrapper">Please enter a valid service center</p>
               </div>
               <!-- Processing Time -->
-              <div class="field">
+              <div class="field" id="processingTimeField-wrapper">
                 <label class="label" for="processing-time">Processing Time (Months)</label>
                 <div class="control">
                   <input class="input" type="number" placeholder="13" name="processingTime" id="processing-time">
                 </div>
+                <p class="help is-danger" id="processingTimeWarning-wrapper">Please enter a valid processing time.</p>
               </div> 
             </fieldset>
           </div>
