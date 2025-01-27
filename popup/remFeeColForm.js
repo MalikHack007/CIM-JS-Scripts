@@ -890,8 +890,13 @@ preLoadMsgBtn.onclick = ()=>{
   //send a message to the background to store it
   const finalPayload = {taskType, orderID, message, messageInputs}
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
-  chrome.runtime.sendMessage(finalMessageToBG);
-  console.log("Message sent to BG to be stored.")
+  chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
+    //close the window
+    chrome.windows.getCurrent().then((window)=>{
+    const windowID = window.id;
+    chrome.windows.remove(windowID);
+  });
+});
 }
 
 msgEnterBtn.onclick = ()=>{
@@ -918,8 +923,14 @@ msgEnterBtn.onclick = ()=>{
     //send a message to the background to store it
     const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage, tabID:tabID};
     const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
-    chrome.runtime.sendMessage(finalMessageToBG);
-    console.log("Message sent to BG to be stored. Message will be also injected into webpage.")
+    chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
+          //close the window
+          chrome.windows.getCurrent().then((window)=>{
+          const windowID = window.id;
+          chrome.windows.remove(windowID);
+        });
+    });
+
 }
 
 // if(orderID && taskType){
