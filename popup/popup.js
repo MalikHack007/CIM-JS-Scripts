@@ -31,6 +31,8 @@ const openRemFeeColFormBtn = document.getElementById('openRemFeeColMsgForm');
 
 const tabBar = document.getElementById('tabBar');
 
+const testBtn = document.getElementById('testBtn');
+
 const pagesForDisplay = {
     formActivateBtnsPage,
     taskStatusPage,
@@ -48,7 +50,8 @@ const runningStatuses = {
 }
 
 const messageTypes = {
-    setScriptRunStatus: "Set up script running status."
+    setScriptRunStatus: "Set up script running status.",
+    updateTaskDB: "Update task database."
 }
 
 const localStorageKeys = {
@@ -379,15 +382,29 @@ openFormTab.onclick = ()=>{
 
 //#endregion
 
-
+function parseOrderId(url) {
+    const match = url.match(/\/order\/(\d+)/);
+    return match ? match[1] : "This is not a valid page.";
+}
 
 openRemFeeColFormBtn.onclick = ()=>{
-    chrome.windows.create({
-        url: "popup/remFeeCollectForm.html",
-        type: "popup",
-        width: 400,
-        height: 600
+    const queryCriteria = { active:true, currentWindow:true };
+    chrome.tabs.query(queryCriteria, (tabs)=>{
+        const currentTab = tabs[0];
+        const currentURL = currentTab.url;
+        const orderID = parseOrderId(currentURL)
+        
+        // console.log(`orderID: ${orderID}`);
+
+        chrome.windows.create({
+            url: `popup/remFeeCollectForm.html?orderID=${orderID}&taskType=${aisNames.remFeeCollect}`,
+            type: "popup",
+            width: 400,
+            height: 600
+        })
     })
+
+
 }
 
 if (clearLocalBtn) {

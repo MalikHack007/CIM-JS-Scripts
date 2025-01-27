@@ -37,7 +37,11 @@
 
       "storage",
 
-      "windows"
+      "windows",
+
+      "tabs",
+
+      "scripting"
     ],
 
     "content_scripts": [

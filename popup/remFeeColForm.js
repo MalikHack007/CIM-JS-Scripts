@@ -601,7 +601,7 @@ function customizedMessage(finalDetails){
                 <P>Please be reminded that requesting Premium Processing Service can only shorten the processing time of your I-140 petition. It does not affect your priority date. 
                 Your priority date should be approximately the date USCIS receives your I-140 petition, NOT the date USCIS approves your petition. Having the I-140 approval through 
                 Premium Processing Service will not expedite the wait time for your priority date to become current. You will still need to wait for your priority date to become current 
-                in order to proceed with the second step of the green card application. To check the cut-off date for people born in your country, please refer to: https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html
+                in order to proceed with the second step of the green card application. To check the cut-off date for people born in your country, please refer to: <a href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" target="_blank" rel="noopener">https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html</a>
                 </p>
                 <p>&nbsp;</p>
                 <P>For more information, you may also refer to the “Priority Date Information_How to know if your Priority Date is Current” and the “Adjustment of Status I-485 v. 
@@ -848,7 +848,53 @@ function customizedMessage(finalDetails){
     
 }
 
-  testBtn.onclick = ()=>{
+const urlParams = new URLSearchParams(window.location.search);
+const orderID = urlParams.get('orderID');
+const taskType = urlParams.get('taskType');
+
+const preLoadMsgBtn = document.querySelector('#msgPreload');
+
+const messageTypes = {
+  setScriptRunStatus: "Set up script running status.",
+  updateTaskDB: "Update task database."
+}
+
+const msgEnterBtn = document.querySelector('#msgEnter');
+
+const actions = {
+  writeMessage: "Please enter message."
+}
+
+preLoadMsgBtn.onclick = ()=>{
+  //read the form data into an object
+  const formData = new FormData(remFeeMsgForm);
+  const formDataObject = {};
+  for (const [name, value] of formData.entries()) {
+    formDataObject[name] = value;
+  }
+  Object.keys(formDataObject).forEach((key)=>{
+    if(formDataObject[key] == "n"){
+      formDataObject[key] = false;
+    }
+    else if(formDataObject[key] == "y"){
+      formDataObject[key] = true;
+    }
+    else if(key == "remainingAttorneyFee" || key == "filingFeeCredit" ){
+      formDataObject[key] = Number(formDataObject[key]);
+    }
+  })
+  //generate the message according to the form inputs
+  const message = customizedMessage(formDataObject);
+  const messageInputs = formDataObject;
+  //send a message to the background to store it
+  const finalPayload = {taskType, orderID, message, messageInputs}
+  const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
+  chrome.runtime.sendMessage(finalMessageToBG);
+  console.log("Message sent to BG to be stored.")
+}
+
+msgEnterBtn.onclick = ()=>{
+    //read the form data into an object
     const formData = new FormData(remFeeMsgForm);
     const formDataObject = {};
     for (const [name, value] of formData.entries()) {
@@ -865,8 +911,21 @@ function customizedMessage(finalDetails){
         formDataObject[key] = Number(formDataObject[key]);
       }
     })
-    console.log(`${customizedMessage(formDataObject)}`);
-  }
+    //generate the message according to the form inputs
+    const message = customizedMessage(formDataObject);
+    const messageInputs = formDataObject;
+    //send a message to the background to store it
+    const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage};
+    const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
+    chrome.runtime.sendMessage(finalMessageToBG);
+    console.log("Message sent to BG to be stored. Message will be also injected into webpage.")
+}
 
-  //#endregion
+// if(orderID && taskType){
+//   console.log(`orderID received: ${orderID}. Task type: ${taskType}`);
+// }
+
+//next step: add event listener to preload msg btn to write directly into the local storage to store the msg input.
+
+//#endregion
 });

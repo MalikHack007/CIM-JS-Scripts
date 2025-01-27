@@ -8,6 +8,10 @@ const aisNames = {
     remFeeCollect: "Please Post Remaining Fee Message"
 }
 
+const actions = {
+    writeMessage: "Please enter message."
+}
+
 const taskStatuses = {
     statusAvail: "Available",
     statusPend: "Pending",
@@ -50,10 +54,11 @@ const isProcessingBooleans = {
 
 const messageTypes = {
     setScriptRunStatus: "Set up script running status.",
-    updateTaskDB: "Update task database."
+    updateTaskDB: "Update task database.",
+    enterMessage: "Enter the message."
 }
 
-const msgNotReady = "N/A";
+const msgNotReady = "Not Ready";
 
 let lastTimestamp = 0;
 let counter = 0;
@@ -187,21 +192,30 @@ const processQueue = (queue, queueType)=>{
         */
         //currentItem is the raw message.info
         const taskType = currentItem.taskType;
-        const status = currentItem.taskStatus;
         const orderID = currentItem.orderID;
+        let status;
         let messageInputs;
         let msg;
+        let messageSent;
         let relevantDetails = {};
-        if(currentItem.messageInputs){
+        // console.log(`${JSON.stringify(currentItem)}`);
+        if("taskStatus" in currentItem){
+            status = currentItem.taskStatus;
+            Object.assign(relevantDetails, { taskStatus: status });
+        }
+        if("messageInputs" in currentItem){
             messageInputs = currentItem.messageInputs;
             Object.assign(relevantDetails, { messageInputs: messageInputs });
         }
-        if(currentItem.message){
+        if("message" in currentItem){
             msg = currentItem.message
             Object.assign(relevantDetails, { message: msg });
         }
-
-        Object.assign(relevantDetails, { taskStatus: status });
+        if("msgSent" in currentItem){
+            messageSent = currentItem.msgSent;
+            Object.assign(relevantDetails, {msgSent: messageSent} );
+        }
+        console.log(`${JSON.stringify(relevantDetails)}`);
 
         relevantDetails = {[orderID]:relevantDetails};
 
@@ -225,7 +239,7 @@ const processQueue = (queue, queueType)=>{
                         const newTaskInfoDBItem = {[taskType]: remFeeDB};
                         Object.assign(taskInfoDB, newTaskInfoDBItem);
                         const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB}
-                        console.log(`writing into local storage(key:value)${JSON.stringify(finalOutput)}`);
+                        // console.log(`writing into local storage(key:value)${JSON.stringify(finalOutput)}`);
                         chrome.storage.local.set(finalOutput, ()=>{
                             processQueue(queue, queueType);
                         })
@@ -241,10 +255,10 @@ const processQueue = (queue, queueType)=>{
                     }
                 }
                 else{
-                    Object.assign(taskInfoDB, taskTypeDBInit)
+                    Object.assign(taskInfoDB, taskTypeDBInit);
                     const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB};
                     chrome.storage.local.set(finalOutput, ()=>{
-                        processQueue(queue, queueType);
+                        processQueue(queue, queueType)
                     })
                 }
                 /*
@@ -260,10 +274,11 @@ const processQueue = (queue, queueType)=>{
                 const finalOutput = {[localStorageKeys.taskDataBase]: taskTypeDBInit};
                 chrome.storage.local.set(finalOutput, ()=>{
                     // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
-                    processQueue(queue, queueType);
+                    processQueue(queue, queueType)
                 });
             }
         })
+
     }
 
     else if (queueType == localStorageKeys.scriptRunningStatusesDB){
@@ -320,7 +335,7 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
         function sendAvailableNotification(){
             return new Promise ((resolve, reject)=>{
                 const notificationID = generateUniqueId();
-                notificationURLs[notificationID] = `https://northcms.wenzo.com/order/${orderID}`;      
+                notificationURLs[notificationID] = `https://northcms.wenzo.com/order/${orderID}`;
                 chrome.notifications.create(notificationID, {
                     title: "New Collect Remaining Fees Task Available",
                     message: `Order ID: ${orderID}`,
@@ -355,31 +370,62 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
         }
 
         function updateTaskDB (){
+            //push it to the queue
             queues[localStorageKeys.taskDataBase].queue.push(message.info);
             // sendResponse(`Task ${message.info}sent to queue for storage.`);
             if(!isProcessingBooleans.isProcessingTaskDB){
-                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType);
+                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType)
             }
-
         }
         // console.log(`message received: ${JSON.stringify(message)}`);
         //get the orderID
-        const orderID = message.info.orderID
+        const orderID = message.info.orderID;
         //get the tab ID of the opened tab
-        const{ tab } = senderObject;
+        const tab = senderObject.tab;
         const tabID = tab.id;
         //#endregion
-        if(message.info.taskStatus == taskStatuses.statusAvail){
-            sendAvailableNotification()
-            updateTaskDB();
-        }
-        else if(message.info.taskStatus == taskStatuses.statusUnavail){
-            removeTab();
-            updateTaskDB();
+        if(message.info.taskStatus){
+            if(message.info.taskStatus == taskStatuses.statusAvail){
+                sendAvailableNotification()
+                updateTaskDB();
+            }
+            else if(message.info.taskStatus == taskStatuses.statusUnavail){
+                removeTab();
+                updateTaskDB();
+            }
+            else{
+                updateTaskDB();
+            }
         }
         else{
-            updateTaskDB();
-        }
+            if((!message.info.action)){
+                updateTaskDB();
+            }
+            else{
+                if(message.info.action == actions.writeMessage){
+                    console.log(`message generated: ${message.info.message}`);
+                    const theMessage = message.info.message;
+                    //update the database
+                    updateTaskDB();
+                    chrome.tabs.query({ active: true }, (tabs) => {
+                        const browserTab = tabs.find((tab) => tab.url.includes(orderID));
+                        if (browserTab) {
+                            console.log(`Active tab URL: ${browserTab.url}`);
+                            const activeTabId = browserTab.id;
+                    
+                            // Send the form data to the content script of the active tab
+                            chrome.tabs.sendMessage(activeTabId, {
+                                type: messageTypes.enterMessage,
+                                info: { message: theMessage },
+                            });
+                        } 
+                        else {
+                            console.log("No active browser tabs found.");
+                        }
+                    });
+                    }
+            }
+            }
     }
 
     else if(message.type == messageTypes.setScriptRunStatus){
@@ -394,6 +440,7 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
         }
     }
 })
+
 
 chrome.storage.local.get(null, (result)=>{
     console.log(`${JSON.stringify(result)}`);
