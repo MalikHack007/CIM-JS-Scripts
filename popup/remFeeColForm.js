@@ -360,7 +360,7 @@ function addComma(number){
     return numString;
 }
 
-function customizedMessage(finalDetails){
+function customizedMessage(finalDetails, orderID){
     // let finalDetails = {
     //     isCaseSpecific: false,
     //     usersCase: "", 
@@ -824,7 +824,7 @@ function customizedMessage(finalDetails){
         it takes <span style="text-decoration: underline;"><strong>at least 4 business days</strong> to process the payment if you send an Electronic Check (ACH) payment via 
         Stripe, which could lead to possible delays in case filing, as we need to receive the payment in order to file the case.</span></p>
         <p>&nbsp;</p>
-        <p>As a reminder, please ensure to include your order ID #66666 in the memo/notes section if possible. After the payment is complete, please upload a receipt to 
+        <p>As a reminder, please ensure to include your order ID #${orderID} in the memo/notes section if possible. After the payment is complete, please upload a receipt to 
         the "Additional Documents" section of your account for our verification purposes.</p>
         <p>&nbsp;</p>
         <p>After we receive your payment, we will issue the appropriate checks to U.S. Department of Homeland Security on your behalf and include them in your petition 
@@ -851,6 +851,7 @@ function customizedMessage(finalDetails){
 const urlParams = new URLSearchParams(window.location.search);
 const orderID = urlParams.get('orderID');
 const taskType = urlParams.get('taskType');
+const tabID = urlParams.get('tabID');
 
 const preLoadMsgBtn = document.querySelector('#msgPreload');
 
@@ -884,7 +885,7 @@ preLoadMsgBtn.onclick = ()=>{
     }
   })
   //generate the message according to the form inputs
-  const message = customizedMessage(formDataObject);
+  const message = customizedMessage(formDataObject, orderID);
   const messageInputs = formDataObject;
   //send a message to the background to store it
   const finalPayload = {taskType, orderID, message, messageInputs}
@@ -912,10 +913,10 @@ msgEnterBtn.onclick = ()=>{
       }
     })
     //generate the message according to the form inputs
-    const message = customizedMessage(formDataObject);
+    const message = customizedMessage(formDataObject, orderID);
     const messageInputs = formDataObject;
     //send a message to the background to store it
-    const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage};
+    const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage, tabID:tabID};
     const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
     chrome.runtime.sendMessage(finalMessageToBG);
     console.log("Message sent to BG to be stored. Message will be also injected into webpage.")

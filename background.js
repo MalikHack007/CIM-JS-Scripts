@@ -40,11 +40,6 @@ const queues = {
 }
 
 
-
-//taskStatQueue = queues[localStorageKeys.taskDataBase]
-
-const taskDiscoverySignal = "Task Detected";
-
 let notificationURLs = {};
 
 const isProcessingBooleans = {
@@ -405,27 +400,31 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
                 if(message.info.action == actions.writeMessage){
                     console.log(`message generated: ${message.info.message}`);
                     const theMessage = message.info.message;
+                    const targetTabID = Number(message.info.tabID);
+                    console.log(`targetTabID with first method: ${targetTabID}`);
                     //update the database
                     updateTaskDB();
-                    chrome.tabs.query({ active: true }, (tabs) => {
-                        const browserTab = tabs.find((tab) => tab.url.includes(orderID));
-                        if (browserTab) {
-                            console.log(`Active tab URL: ${browserTab.url}`);
-                            const activeTabId = browserTab.id;
-                    
-                            // Send the form data to the content script of the active tab
-                            chrome.tabs.sendMessage(activeTabId, {
-                                type: messageTypes.enterMessage,
-                                info: { message: theMessage },
-                            });
-                        } 
-                        else {
-                            console.log("No active browser tabs found.");
-                        }
+                    // Send the form data to the content script of the active tab
+                    chrome.tabs.sendMessage(targetTabID, {
+                        type: messageTypes.enterMessage,
+                        info: { message: theMessage },
                     });
-                    }
+                    // chrome.tabs.query({active:true}, (tabs)=>{
+                    //     const browserTab = tabs.find((tab) => tab.url.includes(orderID));
+                    //     if (browserTab) {
+                    //         console.log(`Active tab URL: ${browserTab.url}`);
+                    //         const activeTabId = browserTab.id;
+                    //         console.log(`targetTabID with second method: ${activeTabId}`)
+                    //         // Send the form data to the content script of the active tab
+                    //         chrome.tabs.sendMessage(activeTabId, {
+                    //             type: messageTypes.enterMessage,
+                    //             info: { message: theMessage },
+                    //         });
+                    //      }
+                    // })                                       
+                }
             }
-            }
+        }
     }
 
     else if(message.type == messageTypes.setScriptRunStatus){
