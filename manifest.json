@@ -44,6 +44,10 @@
       "scripting"
     ],
 
+    "host_permissions":[
+      "https://northcms.wenzo.com/order/*"
+    ],
+
     "content_scripts": [
         {
             "matches": ["https://northcms.wenzo.com/order/*"],
