@@ -863,7 +863,8 @@ const messageTypes = {
 const msgEnterBtn = document.querySelector('#msgEnter');
 
 const actions = {
-  writeMessage: "Please enter message."
+  writeMessage: "Please write message.",
+  sendMessage: "Please write and then send message."
 }
 
 preLoadMsgBtn.onclick = ()=>{

@@ -9,7 +9,8 @@ const aisNames = {
 }
 
 const actions = {
-    writeMessage: "Please enter message."
+    writeMessage: "Please write message.",
+    sendMessage: "Please write and then send message."
 }
 
 const taskStatuses = {
@@ -210,7 +211,7 @@ const processQueue = (queue, queueType)=>{
             messageSent = currentItem.msgSent;
             Object.assign(relevantDetails, {msgSent: messageSent} );
         }
-        console.log(`${JSON.stringify(relevantDetails)}`);
+        // console.log(`${JSON.stringify(relevantDetails)}`);
 
         relevantDetails = {[orderID]:relevantDetails};
 
@@ -278,16 +279,16 @@ const processQueue = (queue, queueType)=>{
 
     else if (queueType == localStorageKeys.scriptRunningStatusesDB){
         //if there is no more message in the queue
-        console.log(`Selected for queue type:${JSON.stringify(queueType)}`);
+        // console.log(`Selected for queue type:${JSON.stringify(queueType)}`);
         if(queue.length === 0){
-            console.log(`Queue length is 0:${JSON.stringify(queue)}`);
+            // console.log(`Queue length is 0:${JSON.stringify(queue)}`);
             isProcessingBooleans.isProcessingScriptStatus = false;
             return;
         }
         const currentItem = queue.shift();
-        console.log(`currently processing item: ${JSON.stringify(currentItem)}`);
+        // console.log(`currently processing item: ${JSON.stringify(currentItem)}`);
         //process script running status queue
-        console.log(`Queue started processing.`)
+        // console.log(`Queue started processing.`)
         chrome.storage.local.get(localStorageKeys.scriptRunningStatusesDB, (result)=>{
             if(result[localStorageKeys.scriptRunningStatusesDB]){
                 const currentStorageObj = result[localStorageKeys.scriptRunningStatusesDB]
@@ -309,7 +310,7 @@ const processQueue = (queue, queueType)=>{
 
 //#endregion
 
-chrome.runtime.onMessage.addListener((message, senderObject) =>{
+chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
     //#region reference
         /*
             {
@@ -381,8 +382,54 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
         //#endregion
         if(message.info.taskStatus){
             if(message.info.taskStatus == taskStatuses.statusAvail){
-                sendAvailableNotification()
-                updateTaskDB();
+                if(!message.info.action){
+                    sendAvailableNotification()
+                    updateTaskDB();
+                }
+
+
+                else{
+                    //BETA FEATURE: Automatic message sending
+                    if(message.info.action == actions.sendMessage){
+                        sendAvailableNotification()
+                        updateTaskDB();
+                        chrome.scripting.executeScript(
+                            { target: {tabId: tabID, },
+                              world: "MAIN",
+                              func: ()=>{
+                                const hitSendBtn = ()=>{
+                                    const sendBtn = document.querySelector('input.btn.btn-secondary.mb-1.ml-1');
+                                    // console.log("dynamic script injection, btn selected:", sendBtn);
+                                    const event = new MouseEvent("click", {
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window,
+                                    });
+                                    window.event = event;
+                                
+                                    // Temporarily attach the event to `window` before dispatching
+                                    // Object.defineProperty(window, "event", {
+                                    //     value: event,
+                                    //     configurable: true,
+                                    // });
+                                    // window._testValue = "Hello from console!"
+                                    // console.log("window.event under executeScript context:", window.event);
+                                    sendBtn.dispatchEvent(event);
+                                    // sendBtn.click();
+                                    // console.log('event called on sendBtn:', event, "sendBtn is:", sendBtn);
+                                } 
+                                hitSendBtn(); 
+                              }
+                            }
+                        )
+                        .then(()=>{
+                            sendResponse("Button clicked for the first time.")
+                        })
+                        return true;
+                    }
+                }
+
+                return true;
             }
             else if(message.info.taskStatus == taskStatuses.statusUnavail){
                 removeTab();
@@ -398,10 +445,10 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
             }
             else{
                 if(message.info.action == actions.writeMessage){
-                    console.log(`message generated: ${message.info.message}`);
+                    // console.log(`message generated: ${message.info.message}`);
                     const theMessage = message.info.message;
                     const targetTabID = Number(message.info.tabID);
-                    console.log(`targetTabID with first method: ${targetTabID}`);
+                    // console.log(`targetTabID with first method: ${targetTabID}`);
                     //update the database
                     updateTaskDB();
                     // Send the form data to the content script of the active tab
@@ -428,16 +475,18 @@ chrome.runtime.onMessage.addListener((message, senderObject) =>{
     }
 
     else if(message.type == messageTypes.setScriptRunStatus){
-        console.log(`entered into ${messageTypes.setScriptRunStatus} message handler`)
+        // console.log(`entered into ${messageTypes.setScriptRunStatus} message handler`)
         //push the message payload to its corresponding queue
         queues[localStorageKeys.scriptRunningStatusesDB].queue.push(message.info)
-        console.log(`successfully pushed into the script status update queue ${JSON.stringify(queues[localStorageKeys.scriptRunningStatusesDB].queue)}`);
+        // console.log(`successfully pushed into the script status update queue ${JSON.stringify(queues[localStorageKeys.scriptRunningStatusesDB].queue)}`);
         //if the processing hasn't started, start it.
         if(!isProcessingBooleans.isProcessingScriptStatus){
-            console.log(`script run info queue selected for processing`);
+            // console.log(`script run info queue selected for processing`);
             processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
         }
     }
+    //test
+    //endtest
 })
 
 
