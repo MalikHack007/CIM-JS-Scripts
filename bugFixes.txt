@@ -1,0 +1,4 @@
+Order#88908 - We need to detect deleted message.
+ - A better way is to look out for any message box style that is NOT already sent
+
+

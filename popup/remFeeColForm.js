@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const wasVisible = !wrapper.classList.contains("is-hidden");
     
     if (isVisible && !wasVisible) {
-      if(wrapper.id == "currentPDYorNField-wrapper"){
+      if(wrapper.id == "currentPDYorNField-wrapper" || wrapper.id == "processingTimeField-wrapper" || wrapper.id == "serviceCenterField-wrapper"){
         additionalPPFormField.classList.remove("is-hidden")
       }
       wrapper.classList.remove("is-hidden");
