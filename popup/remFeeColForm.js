@@ -598,14 +598,14 @@ function customizedMessage(finalDetails, orderID){
                 <P>Additionally, we noticed in your client record that you plan to file the I-140 with a request for premium processing at the same time. If so, an additional 
                 $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting February 26, 2024).</p>
                 <p>&nbsp;</p>
-                <P>Please be reminded that requesting Premium Processing Service can only shorten the processing time of your I-140 petition. It does not affect your priority date. 
-                Your priority date should be approximately the date USCIS receives your I-140 petition, NOT the date USCIS approves your petition. Having the I-140 approval through 
-                Premium Processing Service will not expedite the wait time for your priority date to become current. You will still need to wait for your priority date to become current 
-                in order to proceed with the second step of the green card application. To check the cut-off date for people born in your country, please refer to: <a href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" target="_blank" rel="noopener">https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html</a>
-                </p>
-                <p>&nbsp;</p>
-                <P>For more information, you may also refer to the “Priority Date Information_How to know if your Priority Date is Current” and the “Adjustment of Status I-485 v. 
-                Immigrant Visa Processing” under the Visa FAQ tab.</p>
+                <p>Although we have not observed a lower approval rate for NIW cases processed under premium processing, and we are unable to make a meaningful comparison of 
+                RFE rates between premium and regular processing cases due to the majority of regular processing NIW cases still pending adjudication, we want to highlight the 
+                potentially higher risk of RFEs for NIW cases using premium processing.</p><p><br></p><p>Specifically, based on our recent observations, approximately 79% of the 
+                NIW RFE/NOIDs we received from USCIS between November 2024 and February 2025 were for premium processing NIW cases. It appears that more USCIS officers are rushing 
+                through case adjudications and issuing templated RFE/NOIDs to meet the premium processing deadlines.</p><p><br></p><p>In addition to the increased risk of RFE/NOIDs, 
+                we have also observed delays in the adjudication of premium processing cases at the Nebraska Service Center, with some cases being processed well beyond the guaranteed 
+                timeline. At this time, we cannot predict when this situation may improve or whether similar delays will occur at the Texas Service Center in the future.</p><p><br></p>
+                <p>Given these concerns, we advise against requesting premium processing at this time.</p>
                 <p>&nbsp;</p>                
                 `;
 
