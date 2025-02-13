@@ -1,4 +1,43 @@
 Order#88908 - We need to detect deleted message.
  - A better way is to look out for any message box style that is NOT already sent
 
+Ticket #1:
+
+Need to build a feature where you can just enter an orderID from the chrome extension and be taken there.
+
+Ticket #2:
+
+User should be able to manually mark a task to a certain status.
+
+
+Ticket #3:
+
+Built-In Work Report Generator
+
+Ticket #4:
+
+I-485 fee breakdown message generator;
+For formatting: See order#61838
+
+I-485 inquiry message generator;
+
+Ticket #5:
+
+Why does it not close the tab when it sees that the fee-collection task has been marked?
+
+Ticket #6:
+
+Jump straight to white part of the financial
+
+Ticket #7(currently working on it):
+
+Automate each part of the remaining fee task actions.
+
+Ticket#8:
+
+Automatically group the available tasks into one group, and pending ones into another.
+
+Ticket #9:
+
+Improve the code for updateCaseForPrefiling, with the delayed sequencing.
 
