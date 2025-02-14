@@ -33,6 +33,10 @@ Ticket #7(currently working on it):
 
 Automate each part of the remaining fee task actions.
 
+After you write automation for each part,
+sequence them together like so:
+Approve msg->Update Case Status->(Special Note Update)->Send Invoice(s)->Mark off the AIS.
+
 Ticket#8:
 
 Automatically group the available tasks into one group, and pending ones into another.
@@ -40,4 +44,7 @@ Automatically group the available tasks into one group, and pending ones into an
 Ticket #9:
 
 Improve the code for updateCaseForPrefiling, with the delayed sequencing.
+
+Ticket #10:
+Build an API end point where my program can look up all the fees.
 
