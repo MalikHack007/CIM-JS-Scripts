@@ -1,4 +1,13 @@
 //#region definitions
+const remFeeKeySteps = {
+    dummyStep: "not initiated",
+    sendInvoice: "Send Invoice(s)",
+    markOffAIS: "Mark off AIS"
+}
+
+const tabDummy = "toBeWritten";
+
+
 const taskers = {
     taskMaster: "Malik Zhang",
     nonTaskMaster: "others"
@@ -70,7 +79,7 @@ function generateUniqueId() {
     return `${now}-${counter}`;
 }
 
-const processQueue = (queue, queueType)=>{
+const processQueue = (queue, queueType, tabID = tabDummy)=>{
 //#region Local Storage Reference
 /*
         chrome.storage.local
@@ -193,6 +202,8 @@ const processQueue = (queue, queueType)=>{
         let messageInputs;
         let msg;
         let messageSent;
+        let scriptingInProgress;
+        let currentScriptingStep;
         let relevantDetails = {};
         // console.log(`${JSON.stringify(currentItem)}`);
         if("taskStatus" in currentItem){
@@ -210,6 +221,17 @@ const processQueue = (queue, queueType)=>{
         if("msgSent" in currentItem){
             messageSent = currentItem.msgSent;
             Object.assign(relevantDetails, {msgSent: messageSent} );
+        }
+        if("tabID" in currentItem){
+            Object.assign(relevantDetails, {tabID: tabID});
+        }
+        if("scriptingInProgress" in currentItem){
+            scriptingInProgress = currentItem.scriptingInProgress;
+            Object.assign(relevantDetails, {scriptingInProgress: scriptingInProgress});
+        }
+        if("currentScriptingStep" in currentItem){
+            currentScriptingStep = currentItem.currentScriptingStep;
+            Object.assign(relevantDetails, {currentScriptingStep: currentScriptingStep});
         }
         // console.log(`${JSON.stringify(relevantDetails)}`);
 
@@ -321,6 +343,10 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                     taskStatus: taskStatus,
                     messageInputs: messageInputs,
                     message: msgNotReady
+                    //additions
+                    tabID: tab.id
+                    scriptingInProgress: false
+                    currentScriptingStep: sendInvoice
                 }
             }
         */
@@ -370,7 +396,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             queues[localStorageKeys.taskDataBase].queue.push(message.info);
             // sendResponse(`Task ${message.info}sent to queue for storage.`);
             if(!isProcessingBooleans.isProcessingTaskDB){
-                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType)
+                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType, tabID);
             }
         }
         // console.log(`message received: ${JSON.stringify(message)}`);
@@ -386,8 +412,6 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                     sendAvailableNotification()
                     updateTaskDB();
                 }
-
-
                 else{
                     //BETA FEATURE: Automatic message sending
                     if(message.info.action == actions.sendMessage){
