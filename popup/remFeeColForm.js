@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const remFeeKeySteps = {
+    dummyStep: "not initiated",
+    sendInvoice: "Send Invoice(s)",
+    markOffAIS: "Mark off AIS"
+  }
   //#region messages
   const caseSpecificRadioBtns = document.querySelectorAll('input[name="isCaseSpecific"]');
   const usersCaseSlectField1 = document.querySelector('#usersCase1');
@@ -13,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const directPPRadios = document.querySelectorAll('input[name="isPp"]');
   const countryOfBirthSelect = document.querySelector('select[name="countryOfBirth"]');
   const isInUSRadios = document.querySelectorAll('input[name="isInsideUS"]');
+  const ppSpecificRadios = document.querySelectorAll('input[name="ppSpecific"]');
   //#endregion
 
   //#region Additional PP Info
@@ -57,10 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   
   const visibilityRules = {
-    caseTypeField: {
-      dependsOn: ["isCaseSpecificField","ppYesOrNo"],
-      condition: ([checkedCSRadio, checkedDirectPPRadio]) => (checkedCSRadio == "y"||checkedDirectPPRadio == 'y') 
-    },
+    // caseTypeField: {
+    //   dependsOn: ["isCaseSpecificField","ppYesOrNo"],
+    //   condition: ([checkedCSRadio, checkedDirectPPRadio]) => (checkedCSRadio == "y"||checkedDirectPPRadio == 'y') 
+    // },
     inquiryField: {
       dependsOn: ["complaintField"],
       condition: ([checkedComRadio]) => checkedComRadio == "n" 
@@ -82,6 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ppInfoPvdedField:{
       dependsOn: ["ppYesOrNo"],
       condition: ([checkedPPRadio]) => checkedPPRadio == "y"
+    },
+
+    ppSpecificField:{
+      dependsOn:["ppYesOrNo"],
+      condition:([checkedPPRadio])=> checkedPPRadio == "y"
     },
 
     countryOfBirthField:{
@@ -178,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     discountYesOrNo: "n", //mapped
     ppYesOrNo: "n", //mapped
     ppInfoPvdedYesOrNo:"n", //mapped
-    caseType:"N/A", //mapped
+    caseType:"NIW", //mapped
     isInUSorNo: "n", //mapped
     countryOfBirthSelect: "N/A", //mapped
     currentPDYorN: 'n', //mapped
@@ -189,7 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
     filingFeeCredit: 0,
     processingTime: 0,
     exactPriorityDate: "",
-    earlierCaseType: ""
+    earlierCaseType: "",
+    ppSpecific: "n"
   }
 
   const nameToFieldTableRadio = {
@@ -201,7 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ppInfoIsProvided: "ppInfoPvdedYesOrNo",
     isInsideUS: "isInUSorNo",
     priorityDateIsCurrent: "currentPDYorN",
-    anotherPriorityDate: "anotherPDYorN"
+    anotherPriorityDate: "anotherPDYorN",
+    ppSpecific: "ppSpecific"
   }
 
   const nameToFieldTableSelectMenu = {
@@ -213,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const dropDownMenuListFormState = [usersCaseSlectField1, countryOfBirthSelect, serviceCenterSelect, discountTypeSelect];
 
-  const radioPairListFormState = [caseSpecificRadioBtns, directPPRadios, hasComplainedRadios, attyFeePaidRadios, isDiscountRadios, ppInfoPvdedRadios, isInUSRadios, pdIsCurrentRadios, anotherPDRadios]
+  const radioPairListFormState = [caseSpecificRadioBtns, directPPRadios, hasComplainedRadios, attyFeePaidRadios, isDiscountRadios, ppInfoPvdedRadios, isInUSRadios, pdIsCurrentRadios, anotherPDRadios, ppSpecificRadios];
 
   const inputListFormState = [attyFeeAmtInput, discAmtInput, processingTimeInput, anotherPDDateInput, earlierCaseTypeInput];
 
@@ -228,10 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
     for(const dependedField of dependsOn){
       dependedValues.push(dependedStates[dependedField]);
     }
-    if(field == "countryOfBirthField"){
-      // console.log(dependedValues)
-      // console.log(condition(dependedValues));
-    }
+    // if(field == "countryOfBirthField"){
+    //   // console.log(dependedValues)
+    //   // console.log(condition(dependedValues));
+    // }
     return condition(dependedValues);
   }
 
@@ -857,14 +870,19 @@ const preLoadMsgBtn = document.querySelector('#msgPreload');
 
 const messageTypes = {
   setScriptRunStatus: "Set up script running status.",
-  updateTaskDB: "Update task database."
+  updateTaskDB: "Update task database.",
+  enterMessage: "Enter the message.",
+  remFeeTaskInit: "Initiate rem fee task completion"
 }
 
 const msgEnterBtn = document.querySelector('#msgEnter');
 
+const runTaskBtn = document.querySelector("#runRemFeeTask");
+
 const actions = {
   writeMessage: "Please write message.",
-  sendMessage: "Please write and then send message."
+  sendMessage: "Please write and then send message.",
+  runRemFeeTask: "Run script to complete the task."
 }
 
 preLoadMsgBtn.onclick = ()=>{
@@ -932,6 +950,47 @@ msgEnterBtn.onclick = ()=>{
         });
     });
 
+}
+
+runTaskBtn.onclick = ()=>{
+  //read the form data into an object
+  const formData = new FormData(remFeeMsgForm);
+  const formDataObject = {};
+  for (const [name, value] of formData.entries()) {
+    formDataObject[name] = value;
+  }
+  Object.keys(formDataObject).forEach((key)=>{
+    if(formDataObject[key] == "n"){
+      formDataObject[key] = false;
+    }
+    else if(formDataObject[key] == "y"){
+      formDataObject[key] = true;
+    }
+    else if(key == "remainingAttorneyFee" || key == "filingFeeCredit" ){
+      formDataObject[key] = Number(formDataObject[key]);
+    }
+  })
+  //generate the message according to the form inputs
+  const message = customizedMessage(formDataObject, orderID);
+  const messageInputs = formDataObject;
+  //send a message to the background to store it
+  const finalPayload = {taskType, 
+                        orderID, 
+                        message, 
+                        messageInputs, 
+                        msgSent: true, 
+                        action: actions.runRemFeeTask, 
+                        scriptingInProgress: true, 
+                        tabID: tabID
+                        };
+  const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
+  chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
+        //close the window
+        chrome.windows.getCurrent().then((window)=>{
+        const windowID = window.id;
+        chrome.windows.remove(windowID);
+      });
+  });
 }
 
 // if(orderID && taskType){

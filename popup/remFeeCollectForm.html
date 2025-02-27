@@ -72,7 +72,7 @@
                     </label>
                   </div>
               </fieldset>
-                <!-- usersCase hide--> 
+              <!-- usersCase hide--> 
               <fieldset class="box" id="caseTypeField-wrapper">
                 <legend class="has-text-weight-bold is-size-3">Case Type</legend>
                 <div class="field" id="userCase1">
@@ -80,8 +80,8 @@
                   <div class="control">
                     <div class="select">
                       <select name="usersCase" id="usersCase1">
-                        <option value="N/A" selected>N/A</option>
-                        <option value="NIW">NIW</option>
+                        <option value="N/A">N/A</option>
+                        <option value="NIW" selected>NIW</option>
                         <option value="EB1A">EB1A</option>
                       </select>
                     </div>
@@ -103,6 +103,22 @@
                           </label>
                           <label class="radio">
                           <input type="radio" name="isPp" value="n" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
+                <!--PP Specific?-->
+                <div class="field" id="ppSpecificField-wrapper">
+                  <label class="label">
+                      PP Specific?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="ppSpecific" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="ppSpecific" value="n" checked>
                           No
                           </label>
                       </div>
@@ -346,6 +362,11 @@
             <p class="control">
               <button class="button is-warning is-large" id="msgEnter">
                 Enter Message
+              </button>
+            </p>
+            <p class="control">
+              <button class="button is-info is-large" id="runRemFeeTask">
+                Start Task
               </button>
             </p>
             <p class="control">
