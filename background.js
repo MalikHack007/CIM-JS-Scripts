@@ -409,6 +409,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
         //get the tab ID of the opened tab
         // const tab = senderObject.tab;
         // const tabID = tab.id;
+        console.log("tabID read from content script", senderObject.tab.id);
         //#endregion
         //Status Update
         if(message.info.taskStatus){

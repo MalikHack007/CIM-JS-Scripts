@@ -395,7 +395,7 @@ openRemFeeColFormBtn.onclick = ()=>{
         console.log(`current tab url: ${currentURL}`);
         const orderID = parseOrderId(currentURL)
         const targetTabID = currentTab.id;
-        console.log(`tabID: ${targetTabID}`);
+        console.log(`tabID read from popup script: ${targetTabID}`);
         
         // console.log(`orderID: ${orderID}`);
 
