@@ -613,8 +613,8 @@ function customizedMessage(finalDetails, orderID){
                 <p>&nbsp;</p>
                 <p>Although we have not observed a lower approval rate for NIW cases processed under premium processing, and we are unable to make a meaningful comparison of 
                 RFE rates between premium and regular processing cases due to the majority of regular processing NIW cases still pending adjudication, we want to highlight the 
-                potentially higher risk of RFEs for NIW cases using premium processing.</p><p><br></p><p>Specifically, based on our recent observations, approximately 79% of the 
-                NIW RFE/NOIDs we received from USCIS between November 2024 and February 2025 were for premium processing NIW cases. It appears that more USCIS officers are rushing 
+                potentially higher risk of RFEs for NIW cases using premium processing.</p><p><br></p><p>Specifically, based on our recent observations, approximately 72% of the 
+                NIW RFE/NOIDs we received from USCIS between November 2024 and March 2025 were for premium processing NIW cases. It appears that more USCIS officers are rushing 
                 through case adjudications and issuing templated RFE/NOIDs to meet the premium processing deadlines.</p><p><br></p><p>In addition to the increased risk of RFE/NOIDs, 
                 we have also observed delays in the adjudication of premium processing cases at the Nebraska Service Center, with some cases being processed well beyond the guaranteed 
                 timeline. At this time, we cannot predict when this situation may improve or whether similar delays will occur at the Texas Service Center in the future.</p><p><br></p>
