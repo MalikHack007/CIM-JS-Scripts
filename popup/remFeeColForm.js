@@ -1,17 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const remFeeKeySteps = {
-    dummyStep: "not initiated",
-    sendInvoice: "Send Invoice(s)",
-    markOffAIS: "Mark off AIS"
-  }
   //#region messages
   const caseSpecificRadioBtns = document.querySelectorAll('input[name="isCaseSpecific"]');
   const usersCaseSlectField1 = document.querySelector('#usersCase1');
 
   const hasComplainedRadios = document.querySelectorAll('input[name ="hasComplained"]');
 
-  const ppInfoPvdedRadios = document.querySelectorAll('input[name="ppInfoIsProvided"]')
+  const ppInfoPvdedRadios = document.querySelectorAll('input[name="ppInfoIsProvided"]');
 
+  const unresolvedInquiryRadios = document.querySelectorAll('input[name="isFurtherInquiry"]');
   //#endregion
 
   //#region Client Record
@@ -63,14 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   
   const visibilityRules = {
-    // caseTypeField: {
-    //   dependsOn: ["isCaseSpecificField","ppYesOrNo"],
-    //   condition: ([checkedCSRadio, checkedDirectPPRadio]) => (checkedCSRadio == "y"||checkedDirectPPRadio == 'y') 
-    // },
-    inquiryField: {
-      dependsOn: ["complaintField"],
-      condition: ([checkedComRadio]) => checkedComRadio == "n" 
+    complaintField: {
+      dependsOn: ["inquiryField"],
+      condition: ([checkedInquiryRadio]) => checkedInquiryRadio == "y" 
     },
+
+
     attyFeeAmtField: {
       dependsOn: ["attyFeeYesOrNo"],
       condition: ([checkedAttyRadio]) => checkedAttyRadio == "n"  
@@ -84,7 +78,12 @@ document.addEventListener('DOMContentLoaded', () => {
       dependsOn: ["discountYesOrNo"],
       condition: ([checkedDiscRadio]) => checkedDiscRadio == "y"
     },
-    //ALL PP RELATED
+    //#region ALL PP RELATED
+    additionalPPInfoBox:{
+      dependsOn: ["ppYesOrNo", "caseType", "ppInfoPvdedYesOrNo"],
+      condition: ([ppYoNChecked, caseTypeSelect, ppInfoPvdedRadio]) => ppYoNChecked == "y" && caseTypeSelect == "EB1A" && ppInfoPvdedRadio == "n"
+    },
+
     ppInfoPvdedField:{
       dependsOn: ["ppYesOrNo"],
       condition: ([checkedPPRadio]) => checkedPPRadio == "y"
@@ -144,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dependsOn: ["ppYesOrNo", "ppInfoPvdedYesOrNo", "caseType", "countryOfBirthSelect", "currentPDYorN", "anotherPDYorN"],
       condition: ([checkedPPRadio, ppInfoRadio, caseTypeSelect, countryOfBirthSelect, isPDCurrentRadio, anotherPDRadio]) => checkedPPRadio == 'y' && ppInfoRadio == 'n' && caseTypeSelect == 'EB1A' && (countryOfBirthSelect == "China" || countryOfBirthSelect == "India") && isPDCurrentRadio == 'n' && anotherPDRadio == 'y'
     },
+    //#endregion
     usersCase1Warning:{
       dependsOn:["caseType"],
       condition: ([caseTypeValue]) => caseTypeValue == 'N/A'
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const formState = {
     isCaseSpecificField: "n", //mapped
-    complaintField: "n",  //mapped
+    inquiryField: "n",  //mapped
     attyFeeYesOrNo: "y",  //mapped
     discountYesOrNo: "n", //mapped
     ppYesOrNo: "n", //mapped
@@ -214,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
     isInsideUS: "isInUSorNo",
     priorityDateIsCurrent: "currentPDYorN",
     anotherPriorityDate: "anotherPDYorN",
-    ppSpecific: "ppSpecific"
+    ppSpecific: "ppSpecific",
+    isFurtherInquiry: "inquiryField"
   }
 
   const nameToFieldTableSelectMenu = {
@@ -226,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const dropDownMenuListFormState = [usersCaseSlectField1, countryOfBirthSelect, serviceCenterSelect, discountTypeSelect];
 
-  const radioPairListFormState = [caseSpecificRadioBtns, directPPRadios, hasComplainedRadios, attyFeePaidRadios, isDiscountRadios, ppInfoPvdedRadios, isInUSRadios, pdIsCurrentRadios, anotherPDRadios, ppSpecificRadios];
+  const radioPairListFormState = [caseSpecificRadioBtns, directPPRadios, hasComplainedRadios, attyFeePaidRadios, isDiscountRadios, ppInfoPvdedRadios, isInUSRadios, pdIsCurrentRadios, anotherPDRadios, ppSpecificRadios, unresolvedInquiryRadios];
 
   const inputListFormState = [attyFeeAmtInput, discAmtInput, processingTimeInput, anotherPDDateInput, earlierCaseTypeInput];
 
@@ -262,17 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const wasVisible = !wrapper.classList.contains("is-hidden");
     
     if (isVisible && !wasVisible) {
-      if(wrapper.id == "currentPDYorNField-wrapper" || wrapper.id == "processingTimeField-wrapper" || wrapper.id == "serviceCenterField-wrapper"){
-        additionalPPFormField.classList.remove("is-hidden")
-      }
       wrapper.classList.remove("is-hidden");
     } 
     
     else if (!isVisible && wasVisible) {
-      if(wrapper.id == "currentPDYorNField-wrapper"){
-        additionalPPFormField.classList.add("is-hidden")
-      }
-      // console.log(wrapper, "is hidden");
       wrapper.classList.add("is-hidden");
     }
   }
@@ -339,32 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const remFeeMsgForm = document.getElementById('remFeeMsgInputForm');
 
-// function enterText(textMessage){
-//     let message_box = document.querySelector('#sendMessageBoxTitle');
-
-//     message_box.children[0].children[0].click();
-    
-//     //Access the textbox
-    
-//     let formDiv = document.querySelector('#sendMessageFormDiv');
-    
-//     let iframe = formDiv.querySelector('iframe');
-    
-//     let iframeDocument = iframe.contentDocument;
-    
-//     let iframeTextBox = iframeDocument.querySelector('#tinymce');
-    
-//     iframeTextBox.innerHTML = textMessage;
-// }
-
-// function getOrderID(){
-//     let orderForm = document.querySelector('#sideBarGoToOrderForm');
-//     let orderIDContainer = orderForm.querySelector('input');
-//     return orderIDContainer.value;
-// }
-
-//CAN ONLY HANDLE 4-DIGIT NUMBERS
-
 function addComma(number){
     numString = number.toString();
     if (numString.length == 4){
@@ -374,33 +342,6 @@ function addComma(number){
 }
 
 function customizedMessage(finalDetails, orderID){
-    // let finalDetails = {
-    //     isCaseSpecific: false,
-    //     usersCase: "", 
-    //     hasPaid: false, 
-    //     remainingAttorneyFee: 0, 
-    //     isPp: false, 
-    //     ppInfoIsProvided: false, 
-    //     isInsideUS: false, 
-    //     anotherPriorityDate: false, 
-    //     exactPriorityDate: "N/A",
-    //     countryOfBirth: "N/A", 
-    //     priorityDateIsCurrent: false, 
-    //     h1bIsExpiring: false, 
-    //     serviceCenter: "N/A", 
-    //     processingTime: "N/A", 
-    //     isFurtherInquiry: false,
-    //     //new input additions 01-08-2025
-    //     isOtherPDApproved: false,
-    //     isFilingFeeCredit: false,
-    //     filingFeeCreditType:"N/A",
-    //     filingFeeCredit: 0,
-    //     hasComplained: false,
-    //     earlierCaseType: ""
-    // };
-
-    //constants
-
     const filingFee = 715;
 
     const asylumFee = 300;
@@ -408,129 +349,6 @@ function customizedMessage(finalDetails, orderID){
     const ppFee = 2805;
 
     const totalFilingFees = filingFee + asylumFee;
-    
-    // function updateAllCaseDetails(){
-
-    //     //case specific
-
-    //     function updateCSDetails(){
-    //         const caseSpecificInput = prompt("caseSpecific?(Y or N)").toLowerCase();
-    //         finalDetails.isCaseSpecific = caseSpecificInput === "y";
-    //         if(finalDetails.isCaseSpecific){
-    //             finalDetails.usersCase = prompt("Please enter the case(NIW or EB1A)");
-    //         }
-    //     };
-
-    //     updateCSDetails();
-
-    //     function updateClientComplaintDetails(){
-    //         const hasComplainedInput = prompt("Has the client complained before?(Y/N)");
-    //         finalDetails.hasComplained = hasComplainedInput == "y";
-    //     }
-
-    //     updateClientComplaintDetails();
-
-    //     //remaining atty fee
-    //     function updateAttyFeeAndFFCreditDetails(){
-    //         const attyFeePaidInput = prompt("Remaining fee paid? (Y or N)").toLowerCase();
-    //         finalDetails.hasPaid = attyFeePaidInput === "y";
-    //         if(!finalDetails.hasPaid){
-    //             finalDetails.remainingAttorneyFee = Number(prompt("How much?"));
-    //         }
-    //         const isFilingFeeCreditInput = prompt("Does client have FF credit?(Y/N)").toLowerCase();
-    //         finalDetails.isFilingFeeCredit = isFilingFeeCreditInput == "y";
-    //         if(finalDetails.isFilingFeeCredit){
-    //             finalDetails.filingFeeCreditType = prompt("What type of credit? (overpayment or discount)");
-    //             finalDetails.filingFeeCredit = Number(prompt("How much?"));
-    //         }
-    //     };
-
-    //     updateAttyFeeAndFFCreditDetails();
-
-    //     //further inquiry
-    //     function updateFurtherInquiryDetails(){
-    //         //if complained before, do skip this question
-    //         if(finalDetails.hasComplained){
-    //             return;
-    //         }
-    //         const furtherInquiryInput = prompt("Unresolved inquiries?(Y or N)").toLowerCase();
-    //         finalDetails.isFurtherInquiry = furtherInquiryInput === "y";
-    //     };
-
-    //     updateFurtherInquiryDetails();
-
-    //     //Premium Processing
-    //     function updatePPDetails(){
-    //         const ppInput = prompt("Premium Processing? (Y or N)").toLowerCase();
-    //         finalDetails.isPp = ppInput === "y";
-            
-    //         function updateEB1APPWarningDetails (){
-    //             //all the info we need for posting EB1A warning msg
-    //             finalDetails.countryOfBirth = prompt('Please enter country of birth(China, India, or ROW)');
-    //             const isInsideUSInput = prompt('Is the client inside the US? (y/n)').toLowerCase();
-    //             finalDetails.isInsideUS = isInsideUSInput == "y";
-    //             //if the client is inside the US, ask for their current visa status
-    //             if(finalDetails.isInsideUS){
-    //                 let h1bIsExpiringInput = prompt('Is h1b? If so is it expiring within 1.5 years? (y/n)').toLowerCase();
-    //                 finalDetails.h1bIsExpiring = h1bIsExpiringInput == "y";
-    //             }
-    //             finalDetails.serviceCenter = prompt("Which service center? (Texas Service Center or Nebraska Service Center)");
-    //             finalDetails.processingTime = prompt("How many months?");
-    //             if(finalDetails.countryOfBirth == "China" || finalDetails.countryOfBirth == "India"){
-    //                 let priorityDateInput = prompt("Is there a current PD?(y/n)").toLowerCase();
-    //                 finalDetails.priorityDateIsCurrent = priorityDateInput == "y";
-    //                 //if it's not current, ask for if there is another PD
-    //                 if(!finalDetails.priorityDateIsCurrent){
-    //                     const anotherPriorityDateInput = prompt("Another PD?(Y or N)").toLowerCase();
-    //                     finalDetails.anotherPriorityDate = anotherPriorityDateInput == "y";
-    //                     //if there is another PD, ask for the date and whether that other PD has been approved, update them accordingly
-    //                     if(finalDetails.anotherPriorityDate){
-    //                         finalDetails.exactPriorityDate = prompt("Please enter the PD(yyyy-mm-dd)");
-    //                         const earlierCaseType = prompt("Please enter the case type:");
-    //                         finalDetails.earlierCaseType = earlierCaseType;
-    //                         const isOtherPDApprovedInput = prompt("Is the PD approved?(Y/N):").toLowerCase();
-    //                         finalDetails.isOtherPDApproved = isOtherPDApprovedInput == "y";
-    //                     }
-    //                     //if there isn't another PD, update is finished.
-    //                 }
-    //                 //if it's current, update is finished.
-    //             }
-    //             //if the client is not from China or India, update is finished.
-    //         };
-
-    //         if(finalDetails.isPp){
-    //             //see if pp info has already been provided
-    //             const ppInfoProvidedInput = prompt("PP info provided? (Y or N)").toLowerCase();
-    //             finalDetails.ppInfoIsProvided = ppInfoProvidedInput == "y";
-    //             if(finalDetails.usersCase == ""){
-    //                 finalDetails.usersCase = prompt('Please enter the case(NIW or EB1A)');
-    //                 //if the case is EB1A, get details.
-    //                 if(finalDetails.usersCase == "EB1A"){
-    //                     //dictate whether further updates are needed.
-    //                     if(!finalDetails.ppInfoIsProvided){
-    //                         updateEB1APPWarningDetails();
-    //                     }
-    //                     //else the update is finished
-
-    //                 };                
-    //             }
-
-    //             else{
-    //                 if(finalDetails.usersCase == "EB1A"){
-    //                     if(!finalDetails.ppInfoIsProvided){
-    //                         updateEB1APPWarningDetails();
-    //                     }
-    //                     //else the update is finished
-    //                 }
-    //             };
-    //         };
-    //         //else the update is finished
-    //     };
-
-    //     updatePPDetails();
-    // };
-
-    // updateAllCaseDetails();
 
     const handleCaseDetails = {
         handleCaseSpecific: function (){
@@ -786,12 +604,19 @@ function customizedMessage(finalDetails, orderID){
             <p>&nbsp;</p>
             <p>We will respond to you further as soon as possible. Thank you!</p>
             `;
+            const noFurtherInquiry = "<p>Please note that we must receive the required fees before we can file the case. Thank you!</p>"
             if(finalDetails.isFurtherInquiry){
-                return furtherInquiryText;
+                if(finalDetails.hasComplained){
+                  return noFurtherInquiry;
+                }
+                else{
+                  return furtherInquiryText;
+                }
+                
             }
             else{
-                return "<p>Please note that we must receive the required fees before we can file the case. Thank you!</p>";
-            };
+                return noFurtherInquiry;
+            }
         },
 
         handleComplaints: function(){
@@ -992,12 +817,6 @@ runTaskBtn.onclick = ()=>{
       });
   });
 }
-
-// if(orderID && taskType){
-//   console.log(`orderID received: ${orderID}. Task type: ${taskType}`);
-// }
-
-//next step: add event listener to preload msg btn to write directly into the local storage to store the msg input.
 
 //#endregion
 });

@@ -39,22 +39,6 @@
                         </div>
                     </label>
                   </div>
-                  <!-- has complained? -->
-                  <div class="field">
-                    <label class="label">
-                        Has the client complained before?
-                        <div class="control">
-                            <label class="radio">
-                            <input type="radio" name="hasComplained" value="y">
-                            Yes
-                            </label>
-                            <label class="radio">
-                            <input type="radio" name="hasComplained" value="n" checked>
-                            No
-                            </label>
-                        </div>
-                    </label>
-                  </div>
                   <!-- unresolved inquiry? -->
                   <div class="field" id="inquiryField-wrapper">
                     <label class="label">
@@ -71,6 +55,23 @@
                         </div>
                     </label>
                   </div>
+                  <!-- has complained? -->
+                  <div class="field" id="complaintField-wrapper">
+                    <label class="label">
+                        Has the client complained before?
+                        <div class="control">
+                            <label class="radio">
+                            <input type="radio" name="hasComplained" value="y">
+                            Yes
+                            </label>
+                            <label class="radio">
+                            <input type="radio" name="hasComplained" value="n" checked>
+                            No
+                            </label>
+                        </div>
+                    </label>
+                  </div>
+
               </fieldset>
               <!-- usersCase hide--> 
               <fieldset class="box" id="caseTypeField-wrapper">
@@ -259,7 +260,7 @@
                 </div>
             </fieldset>
             <!-- additional PP Info -->
-            <fieldset class="box" id="additionalPPInfoBox">
+            <fieldset class="box" id="additionalPPInfoBox-wrapper">
               <legend class="has-text-weight-bold is-size-3">Additional PP Info</legend>
               <!-- is the PD current? -->
               <div class="field" id="currentPDYorNField-wrapper">
