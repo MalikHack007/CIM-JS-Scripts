@@ -28,7 +28,10 @@ const taskStatuses = {
     statusAvail: "Available",
     statusPend: "Pending",
     statusMaster: `Done by ${taskers.taskMaster}`,
-    statusUnavail: "Undoable"
+    statusUnavail: "Undoable",
+    statusDisqualified: "Disqualified",
+    statusTaken: "Done By Others",
+    statusWaitingToPostMsg: "Waiting for message"
 }
 
 const remFeeWatchingTask = "remFeeWatchingStatus";
@@ -37,7 +40,8 @@ const remFeeFetTask = "remFeeFetchingStatus";
 
 const localStorageKeys = {
     scriptRunningStatusesDB: "Scripts Statuses",
-    taskDataBase: "Task Database"
+    taskDataBase: "Task Database",
+    activelyManagedTabs: "Actively Managed Tabs"
 }
 
 
@@ -48,7 +52,8 @@ const runningStatuses = {
 
 const queues = {
     [localStorageKeys.scriptRunningStatusesDB]: {queue: [], queueType: localStorageKeys.scriptRunningStatusesDB},
-    [localStorageKeys.taskDataBase] : {queue: [], queueType: localStorageKeys.taskDataBase}
+    [localStorageKeys.taskDataBase] : {queue: [], queueType: localStorageKeys.taskDataBase},
+    [localStorageKeys.activelyManagedTabs] : {queue: [], queueType: localStorageKeys.activelyManagedTabs}
 }
 
 
@@ -56,14 +61,17 @@ let notificationURLs = {};
 
 const isProcessingBooleans = {
     isProcessingTaskDB: false,
-    isProcessingScriptStatus: false
+    isProcessingScriptStatus: false,
+    isProcessingTabIDs: false
 }
 
 const messageTypes = {
     setScriptRunStatus: "Set up script running status.",
     updateTaskDB: "Update task database.",
     enterMessage: "Enter the message.",
-    remFeeTaskInit: "Initiate rem fee task completion"
+    remFeeTaskInit: "Initiate rem fee task completion",
+    taskURLs: "taskURLs",
+    contentScriptPermit: "Check my tab id"
 }
 
 const msgNotReady = "Not Ready";
@@ -80,6 +88,10 @@ function generateUniqueId() {
         counter = 0;
     }
     return `${now}-${counter}`;
+}
+
+function delay(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const processQueue = (queue, queueType, tabID = tabDummy)=>{
@@ -311,9 +323,6 @@ const processQueue = (queue, queueType, tabID = tabDummy)=>{
             return;
         }
         const currentItem = queue.shift();
-        // console.log(`currently processing item: ${JSON.stringify(currentItem)}`);
-        //process script running status queue
-        // console.log(`Queue started processing.`)
         chrome.storage.local.get(localStorageKeys.scriptRunningStatusesDB, (result)=>{
             if(result[localStorageKeys.scriptRunningStatusesDB]){
                 const currentStorageObj = result[localStorageKeys.scriptRunningStatusesDB]
@@ -330,6 +339,65 @@ const processQueue = (queue, queueType, tabID = tabDummy)=>{
                 })
             }
         })
+    }
+    else if(queueType == localStorageKeys.activelyManagedTabs){
+        if(queue.length === 0){
+            isProcessingBooleans.isProcessingTabIDs = false;
+            return;
+        }
+        const currentItem = queue.shift();
+        chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
+            .then((result)=>{
+                if(result[localStorageKeys.activelyManagedTabs]){
+                    const activeMgedTabs = result[localStorageKeys.activelyManagedTabs];
+                    if(activeMgedTabs[currentItem.taskType]){
+                        const tabIDArr = activeMgedTabs[currentItem.taskType];
+                        tabIDArr.push(currentItem.tabID);
+                        const newEntryToActiveTabs = {[currentItem.taskType] : tabIDArr};
+                        Object.assign(activeMgedTabs, newEntryToActiveTabs);
+                        const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
+                        chrome.storage.local.set(finalPayLoad)
+                            .then(()=>{
+                                processQueue(queue, queueType);
+                            })
+                    }
+                    //first entry at the task type level
+                    else{
+                        const tabIDArr = [currentItem.tabID];
+                        const newEntry = {[currentItem.taskType] : tabIDArr};
+                        Object.assign(activeMgedTabs, newEntry);
+                        const finalPayLoad = {[localStorageKeys.activeMgedTabs] : activeMgedTabs};
+                        chrome.storage.local.set(finalPayLoad)
+                            .then(()=>{
+                                processQueue(queue, queueType);
+                            })
+                    }
+                }
+                //first entry at the database level
+                else{
+                    const tabIDArr = [currentItem.tabID];
+                    const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : {[currentItem.taskType] : tabIDArr}};
+                    chrome.storage.local.set(finalPayLoad)
+                        .then(()=>{
+                            processQueue(queue, queueType);
+                        })
+                }
+            })
+    }
+}
+
+async function openURLs(urlArr, taskType){
+    for(const currentURL of urlArr){
+        await chrome.tabs.create({url: currentURL})
+            .then((tab)=>{
+                const tabID = tab.id;
+                const payLoad = {taskType, tabID};
+                queues[localStorageKeys.activelyManagedTabs].queue.push(payLoad);
+            })
+        await delay(1000);
+    }
+    if(!isProcessingBooleans.isProcessingTabIDs){
+        processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType)
     }
 }
 
@@ -626,8 +694,44 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
         }
     }
-    //test
+
+    else if(message.type == messageTypes.taskURLs){
+        const allURLs = message.info.URLS;
+        const taskType = message.info.taskType;
+        openURLs(allURLs, taskType);
+    }
+    else if(message.type == messageTypes.contentScriptPermit){
+        const tabIDOfSender = senderObject.tab.id;
+        console.log("sender tab id:", tabIDOfSender);
+        chrome.storage.local.get([localStorageKeys.activelyManagedTabs])
+            .then((result)=>{
+                console.log("data retrieved", result);
+        
+                if(result[localStorageKeys.activelyManagedTabs]){
+                    const activeMgedTabs = result[localStorageKeys.activelyManagedTabs];
+                    if(activeMgedTabs[message.info.taskType]){
+                        const tabIDArr = activeMgedTabs[message.info.taskType];
+                        if(tabIDArr.includes(tabIDOfSender)){   
+                            sendResponse({permission: true});
+                        }
+                        else{
+                            sendResponse({permission: false});
+                        }
+                    }
+                    //task type does not exist
+                    else{
+                        sendResponse({permission: false});
+                    }
+                }
+                //database does not exist
+                else{
+                    sendResponse({permission: false});
+                }  
+            })
+    }
+    //test  
     //endtest
+    return true;
 })
 
 
