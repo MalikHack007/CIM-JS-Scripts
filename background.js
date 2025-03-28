@@ -5,6 +5,11 @@ const remFeeKeySteps = {
     markOffAIS: "Mark off AIS"
 }
 
+const scriptNames = {
+    remFeeWatch: "Remaining Fee Task Watcher",
+    remFeeFetch: "Remaining Fee Task Fetcher"
+}
+
 const tabDummy = "toBeWritten";
 
 
@@ -351,54 +356,94 @@ const processQueue = (queue, queueType, tabID = tabDummy)=>{
                 if(result[localStorageKeys.activelyManagedTabs]){
                     const activeMgedTabs = result[localStorageKeys.activelyManagedTabs];
                     if(activeMgedTabs[currentItem.taskType]){
-                        const tabIDArr = activeMgedTabs[currentItem.taskType];
-                        tabIDArr.push(currentItem.tabID);
-                        const newEntryToActiveTabs = {[currentItem.taskType] : tabIDArr};
-                        Object.assign(activeMgedTabs, newEntryToActiveTabs);
-                        const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
-                        chrome.storage.local.set(finalPayLoad)
-                            .then(()=>{
-                                processQueue(queue, queueType);
-                            })
+                        const tabMgmentObj = activeMgedTabs[currentItem.taskType];
+                        if(tabMgmentObj.TabIDs){
+                            const tabIDArr = tabMgmentObj.TabIDs;
+                            tabIDArr.push(currentItem.tabID);
+                            const newEntrytoTabMgmtObj = {"TabIDs" : tabIDArr};
+                            Object.assign(tabMgmentObj, newEntrytoTabMgmtObj);
+                            const newEntryToActiveTabs = {[currentItem.taskType] : tabMgmentObj};
+                            Object.assign(activeMgedTabs, newEntryToActiveTabs);
+                            const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
+                            chrome.storage.local.set(finalPayLoad)
+                                .then(()=>{
+                                    processQueue(queue, queueType);
+                                })
+                        }
+                        else{
+                            const newTabIDArr = [currentItem.tabID];
+                            const newEntrytoTabMgmtObj = {"TabIDs" : newTabIDArr};
+                            Object.assign(tabMgmentObj, newEntrytoTabMgmtObj);
+                            const newEntryToActiveTabs = {[currentItem.taskType] : tabMgmentObj};
+                            Object.assign(activeMgedTabs, newEntryToActiveTabs);
+                            const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
+                            chrome.storage.local.set(finalPayLoad)
+                                .then(()=>{
+                                    processQueue(queue, queueType);
+                                })
+                        }
                     }
                     //first entry at the task type level
                     else{
-                        const tabIDArr = [currentItem.tabID];
-                        const newEntry = {[currentItem.taskType] : tabIDArr};
-                        Object.assign(activeMgedTabs, newEntry);
-                        const finalPayLoad = {[localStorageKeys.activeMgedTabs] : activeMgedTabs};
-                        chrome.storage.local.set(finalPayLoad)
-                            .then(()=>{
-                                processQueue(queue, queueType);
-                            })
+                        // const tabIDArr = [currentItem.tabID];
+                        // const newEntry = {[currentItem.taskType] : tabIDArr};
+                        // Object.assign(activeMgedTabs, newEntry);
+                        // const finalPayLoad = {[localStorageKeys.activeMgedTabs] : activeMgedTabs};
+                        // chrome.storage.local.set(finalPayLoad)
+                        //     .then(()=>{
+                        //         processQueue(queue, queueType);
+                        //     })
+                        console.log("No window ID.")
                     }
                 }
                 //first entry at the database level
                 else{
-                    const tabIDArr = [currentItem.tabID];
-                    const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : {[currentItem.taskType] : tabIDArr}};
-                    chrome.storage.local.set(finalPayLoad)
-                        .then(()=>{
-                            processQueue(queue, queueType);
-                        })
+                    if(currentItem.ScriptWindowID){
+                        const scriptWindowID = currentItem.ScriptWindowID;
+                        const entryInTaskSpecificDB = { WindowID: scriptWindowID };
+                        const activeMgedDB = { [aisNames.remFeeCollect] : entryInTaskSpecificDB};
+                        const finalPayLoad = { [localStorageKeys.activelyManagedTabs] : activeMgedDB };
+                        chrome.storage.local.set(finalPayLoad)
+                            .then(()=>{
+                                processQueue(queue, queueType);
+                            })
+                    }
+                    else{
+                        console.log("Lack of Window ID.")
+                    }
+                    // const tabIDArr = [currentItem.tabID];
+                    // const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : {[currentItem.taskType] : {"TabIDs": tabIDArr}}};
+                    // chrome.storage.local.set(finalPayLoad)
+                    //     .then(()=>{
+                    //         processQueue(queue, queueType);
+                    //     })
+                    
                 }
             })
     }
 }
 
-async function openURLs(urlArr, taskType){
-    for(const currentURL of urlArr){
-        await chrome.tabs.create({url: currentURL})
-            .then((tab)=>{
-                const tabID = tab.id;
-                const payLoad = {taskType, tabID};
-                queues[localStorageKeys.activelyManagedTabs].queue.push(payLoad);
-            })
-        await delay(1000);
+async function openURLs(urlArr, taskType, windowID){
+    if(windowID){
+        for(const currentURL of urlArr){
+            await chrome.tabs.create({url: currentURL, windowId: windowID})
+                .then((tab)=>{
+                    const tabID = tab.id;
+                    const payLoad = {taskType, tabID};
+                    queues[localStorageKeys.activelyManagedTabs].queue.push(payLoad);
+                })
+            await delay(1000);
+        }
+        if(!isProcessingBooleans.isProcessingTabIDs){
+            processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType)
+        }
     }
-    if(!isProcessingBooleans.isProcessingTabIDs){
-        processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType)
+
+    else{
+        console.log("Need window id to open tabs.")
     }
+
+
 }
 
 //#endregion
@@ -593,6 +638,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         type: messageTypes.remFeeTaskInit,
                         info: { message: theMessage },
                     });
+                    sendResponse("Done.");  
                 }
                 else if (message.info.action == actions.sendMessage){
                     let tabID;
@@ -608,8 +654,8 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
                         tabID = targetTabID;
-                        console.log("target tab ID in storage before background script click submission button", tabID);  
-                        console.log("tabID before scripting", tabID);
+                        // console.log("target tab ID in storage before background script click submission button", tabID);  
+                        // console.log("tabID before scripting", tabID);
                         chrome.scripting.executeScript(
                             { target: {tabId: tabID },
                               world: "MAIN",
@@ -660,8 +706,8 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
                         tabID = targetTabID;
-                        console.log("target tab ID in storage before background script click submission button", tabID);  
-                        console.log("tabID before scripting", tabID);
+                        // console.log("target tab ID in storage before background script click submission button", tabID);  
+                        // console.log("tabID before scripting", tabID);
                         chrome.scripting.executeScript(
                             { target: { tabId: tabID },
                               world: "MAIN",
@@ -684,33 +730,77 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
     }
 
     else if(message.type == messageTypes.setScriptRunStatus){
+        if(message.info.ScriptWindowID && message.info[scriptNames.remFeeFetch]){
+            const payloadForScriptRunStatus = {[scriptNames.remFeeFetch] : message.info[scriptNames.remFeeFetch]};
+            const payloadForActiveMgedTabs = {
+                ScriptWindowID: message.info.ScriptWindowID,
+                taskType: aisNames.remFeeCollect
+            }
+            //update script run status
+            queues[localStorageKeys.scriptRunningStatusesDB].queue.push(payloadForScriptRunStatus);
+            if(!isProcessingBooleans.isProcessingScriptStatus){
+                // console.log(`script run info queue selected for processing`);
+                processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
+            }
+            //update window ID.
+            queues[localStorageKeys.activelyManagedTabs].queue.push(payloadForActiveMgedTabs);
+            if(!isProcessingBooleans.isProcessingTabIDs){
+                // console.log(`script run info queue selected for processing`);
+                processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType);
+            }
+        }
         // console.log(`entered into ${messageTypes.setScriptRunStatus} message handler`)
         //push the message payload to its corresponding queue
-        queues[localStorageKeys.scriptRunningStatusesDB].queue.push(message.info)
-        // console.log(`successfully pushed into the script status update queue ${JSON.stringify(queues[localStorageKeys.scriptRunningStatusesDB].queue)}`);
-        //if the processing hasn't started, start it.
-        if(!isProcessingBooleans.isProcessingScriptStatus){
-            // console.log(`script run info queue selected for processing`);
-            processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
+        else{
+            queues[localStorageKeys.scriptRunningStatusesDB].queue.push(message.info)
+            // console.log(`successfully pushed into the script status update queue ${JSON.stringify(queues[localStorageKeys.scriptRunningStatusesDB].queue)}`);
+            //if the processing hasn't started, start it.
+            if(!isProcessingBooleans.isProcessingScriptStatus){
+                // console.log(`script run info queue selected for processing`);
+                processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
+            }
         }
+
     }
 
     else if(message.type == messageTypes.taskURLs){
         const allURLs = message.info.URLS;
         const taskType = message.info.taskType;
-        openURLs(allURLs, taskType);
+        chrome.storage.local.get([localStorageKeys.activelyManagedTabs])
+            .then((result) => {
+                if(result[localStorageKeys.activelyManagedTabs]){
+                    const tabsDB = result[localStorageKeys.activelyManagedTabs];
+                    if(tabsDB[message.info.taskType]){
+                        const tabsDBTaskSpecific = tabsDB[message.info.taskType];
+                        if(tabsDBTaskSpecific.WindowID){
+                            //Specifically open the tab in stored window
+                            openURLs(allURLs, taskType, tabsDBTaskSpecific.WindowID);
+                        }   
+                        else{
+                            console.log("No window ID, cannot open tab.")
+                        }
+                    }
+                    else{
+                        console.log("No window ID, cannot open tab.")
+                    }
+                }
+                else{
+                    console.log("No window ID. Cannot open tab.")
+                }
+            })
     }
     else if(message.type == messageTypes.contentScriptPermit){
         const tabIDOfSender = senderObject.tab.id;
-        console.log("sender tab id:", tabIDOfSender);
+        // console.log("sender tab id:", tabIDOfSender);
         chrome.storage.local.get([localStorageKeys.activelyManagedTabs])
             .then((result)=>{
-                console.log("data retrieved", result);
+                // console.log("data retrieved", result);
         
                 if(result[localStorageKeys.activelyManagedTabs]){
                     const activeMgedTabs = result[localStorageKeys.activelyManagedTabs];
                     if(activeMgedTabs[message.info.taskType]){
-                        const tabIDArr = activeMgedTabs[message.info.taskType];
+                        const taskSpecificDB = activeMgedTabs[message.info.taskType];
+                        const tabIDArr = taskSpecificDB.TabIDs;
                         if(tabIDArr.includes(tabIDOfSender)){   
                             sendResponse({permission: true});
                         }

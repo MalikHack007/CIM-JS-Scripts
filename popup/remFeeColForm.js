@@ -778,6 +778,8 @@ msgEnterBtn.onclick = ()=>{
 }
 
 runTaskBtn.onclick = ()=>{
+  //TEST
+  //TEST END
   //read the form data into an object
   const formData = new FormData(remFeeMsgForm);
   const formDataObject = {};
@@ -810,6 +812,7 @@ runTaskBtn.onclick = ()=>{
                         };
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
   chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
+        console.log("Starting to close window.");
         //close the window
         chrome.windows.getCurrent().then((window)=>{
         const windowID = window.id;

@@ -184,8 +184,25 @@ const setScriptStatusStop = (script)=>{
 }
 
 const setScriptStatusRun = (script)=>{
-    const storageObject = {[script]: runningStatuses.runningStatus};
-    chrome.runtime.sendMessage({type: messageTypes.setScriptRunStatus, info: storageObject})
+    if(script == scriptNames.remFeeFetch){
+        let windowID;
+        chrome.windows.getCurrent()
+            .then((window)=>{
+                windowID = window.id;
+                const storageObject = {
+                    [script]: runningStatuses.runningStatus, 
+                    ScriptWindowID: windowID
+                };
+                chrome.runtime.sendMessage({
+                    type: messageTypes.setScriptRunStatus,
+                    info: storageObject
+                })
+            })   
+    }
+    else{
+        const storageObject = {[script] : runningStatuses.runningStatus};
+        chrome.runtime.sendMessage({type: messageTypes.setScriptRunStatus, info: storageObject})
+    }
 }
 
 //#region Local Storage Reference
