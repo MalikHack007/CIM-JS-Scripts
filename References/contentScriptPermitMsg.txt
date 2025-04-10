@@ -1,0 +1,4 @@
+{
+    type: messageTypes.contentScriptPermit,
+    info: {taskType: aisNames.remFeeCollect}
+}

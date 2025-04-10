@@ -99,72 +99,7 @@ function delay(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const processQueue = (queue, queueType, tabID = tabDummy)=>{
-//#region Local Storage Reference
-/*
-        chrome.storage.local
-
-
-
-    key: localStorageKeys.taskDataBase
-
-
-
-    value: 
-
-    {
-
-    “remFeeCollect”: {
-
-        “1234”:{
-
-        taskStatus: “pending”,
-
-        messageInputs: {…….},
-
-        message: “N/A”
-
-        }
-
-        [orderID]: {
-
-        taskStatus: [status],
-
-        messageInputs: {…….},
-
-        message: [pre-written message]
-
-        }
-
-        }
-
-    }
-
-    key: localStorageKeys.scriptRunningStatusesDB
-
-
-
-    value:
-
-    {
-
-
-
-        [scriptName]: runningStatus
-
-
-
-        remFeeDetection: “Running”
-
-
-
-        remFeeFetch: “Stopped”
-
-
-
-    }
-*/
-//#endregion
+const processQueue = (queue, queueType)=>{
     
     if(queueType == localStorageKeys.taskDataBase){
         //if there is no more message in the queue
@@ -175,47 +110,7 @@ const processQueue = (queue, queueType, tabID = tabDummy)=>{
         const currentItem = queue.shift();
 
         //#region definitions
-        /*
-            MESSAGE LOOKS LIKE THIS
-            {
-                type: messageTypes.updateTaskDB, 
-                info: {
-                    taskType: taskType,
-                    orderID: [orderID],
-                    taskStatus: taskStatus,
-                    **below is optional**
-                    messageInputs: messageInputs,
-                    message: msgNotReady
-                }
-            }
-            key: localStorageKeys.taskDataBase
 
-
-
-            value: 
-
-            {
-                [taskType]:{
-                    [orderID]:{
-                        taskStatus:"pending",
-                        messageInputs: {},
-                        message: "N/A"
-                    }
-            }
-
-            “remFeeCollect”: {
-
-                “1234”:{
-
-                taskStatus: “pending”,
-
-                messageInputs: {…….},
-
-                message: “N/A”
-
-            }
-        */
-        //currentItem is the raw message.info
         const taskType = currentItem.taskType;
         const orderID = currentItem.orderID;
         let status;
@@ -243,7 +138,7 @@ const processQueue = (queue, queueType, tabID = tabDummy)=>{
             Object.assign(relevantDetails, {msgSent: messageSent} );
         }
         if("tabID" in currentItem){
-            Object.assign(relevantDetails, {tabID: tabID});
+            Object.assign(relevantDetails, {tabID: currentItem.tabID});
         }
         if("scriptingInProgress" in currentItem){
             scriptingInProgress = currentItem.scriptingInProgress;
@@ -449,24 +344,6 @@ async function openURLs(urlArr, taskType, windowID){
 //#endregion
 
 chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
-    //#region reference
-        /*
-            {
-                type: messageTypes.updateTaskDB, 
-                info: {
-                    taskType: taskType,
-                    orderID: [orderID],
-                    taskStatus: taskStatus,
-                    messageInputs: messageInputs,
-                    message: msgNotReady
-                    //additions
-                    tabID: tab.id
-                    scriptingInProgress: false
-                    currentScriptingStep: sendInvoice
-                }
-            }
-        */
-    //#endregion
 
     if(message.type == messageTypes.updateTaskDB){
         //#region definitions
@@ -508,24 +385,30 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
             })
         }
 
-        function updateTaskDB (tabID = "N/A"){
+        function updateTaskDB (){
             //push it to the queue
             queues[localStorageKeys.taskDataBase].queue.push(message.info);
             // sendResponse(`Task ${message.info}sent to queue for storage.`);
             if(!isProcessingBooleans.isProcessingTaskDB){
-                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType, tabID);
+                processQueue(queues[localStorageKeys.taskDataBase].queue, queues[localStorageKeys.taskDataBase].queueType);
             }
         }
         // console.log(`message received: ${JSON.stringify(message)}`);
         //get the orderID
         const orderID = message.info.orderID;
         //get the tab ID of the opened tab
-        // const tab = senderObject.tab;
-        // const tabID = tab.id;
-        console.log("tabID read from content script", senderObject.tab.id);
+        const tab = senderObject.tab;
+        const tabID = tab.id;
+        //update the message info tabID field
+        if(message.info.tabID){
+            Object.assign(message.info, {tabID: tabID});
+        }
+       
         //#endregion
         //Status Update
         if(message.info.taskStatus){
+            //add tabID to the message info if applicable
+
             if(message.info.taskStatus == taskStatuses.statusAvail){
                 if(!message.info.action){
                     sendAvailableNotification()
@@ -571,8 +454,6 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         return true;
                     }
                 }
-
-                return true;
             }
             else if(message.info.taskStatus == taskStatuses.statusUnavail){
                 removeTab();
@@ -591,58 +472,59 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                 if(message.info.action == actions.writeMessage){
                     // console.log(`message generated: ${message.info.message}`);
                     const theMessage = message.info.message;
-                    const targetTabID = Number(message.info.tabID);
+                    
                     // console.log(`targetTabID with first method: ${targetTabID}`);
                     //update the database
                     updateTaskDB();
-                    // Send the form data to the content script of the active tab
-                    console.log("target Tab ID:", targetTabID);
+                    chrome.storage.local.get([localStorageKeys.taskDataBase])
+                        .then((taskDataBaseKeyValue)=>{
+                            const taskDataBase = taskDataBaseKeyValue[localStorageKeys.taskDataBase];
+                            const remFeeDataBase = taskDataBase[aisNames.remFeeCollect];
+                            const targetOrderInfo = remFeeDataBase[orderID];
+                            
+                            const targetTabID = Number(targetOrderInfo.tabID);
+                            
+                            console.log("target tab ID in storage", targetTabID);
+                            chrome.tabs.sendMessage(targetTabID, {
+                                type: messageTypes.enterMessage,
+                                info: { message: theMessage },
+                            });
+                            sendResponse("Done."); 
+                        }
+                    
+                    )
                     chrome.tabs.sendMessage(targetTabID, {
                         type: messageTypes.enterMessage,
                         info: { message: theMessage },
-                    });
-                    // chrome.tabs.query({active:true}, (tabs)=>{
-                    //     const browserTab = tabs.find((tab) => tab.url.includes(orderID));
-                    //     if (browserTab) {
-                    //         console.log(`Active tab URL: ${browserTab.url}`);
-                    //         const activeTabId = browserTab.id;
-                    //         console.log(`targetTabID with second method: ${activeTabId}`)
-                    //         // Send the form data to the content script of the active tab
-                    //         chrome.tabs.sendMessage(activeTabId, {
-                    //             type: messageTypes.enterMessage,
-                    //             info: { message: theMessage },
-                    //         });
-                    //      }
-                    // })                                       
+                    });                                       
                 }
                 else if (message.info.action == actions.runRemFeeTask){
-                    const tabID = Number(message.info.tabID);
+                    // const tabID = Number(message.info.tabID);
+
                     const theMessage = message.info.message;
-                    updateTaskDB(tabID);
+
+                    updateTaskDB();
+                    
                     chrome.storage.local.get([localStorageKeys.taskDataBase])
                     .then((taskDataBaseKeyValue)=>{
-                        // console.log(JSON.stringify(taskDataBase));
 
                         const taskDataBase = taskDataBaseKeyValue[localStorageKeys.taskDataBase];
                         const remFeeDataBase = taskDataBase[aisNames.remFeeCollect];
-                        // console.log(JSON.stringify(remFeeDataBase));
                         const targetOrderInfo = remFeeDataBase[orderID];
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
-                        console.log("target tab ID in storage", targetTabID);
-                        console.log("target tab ID from message", tabID);
-
                         
+                        console.log("target tab ID in storage", targetTabID);
+                        chrome.tabs.sendMessage(targetTabID, {
+                            type: messageTypes.remFeeTaskInit,
+                            info: { message: theMessage },
+                        });
+                        sendResponse("Done."); 
                     })
-                    chrome.tabs.sendMessage(tabID, {
-                        type: messageTypes.remFeeTaskInit,
-                        info: { message: theMessage },
-                    });
-                    sendResponse("Done.");  
+                     
                 }
                 else if (message.info.action == actions.sendMessage){
-                    let tabID;
-                    updateTaskDB();
+                    // updateTaskDB(senderObject.tab.id);
                     chrome.storage.local.get([localStorageKeys.taskDataBase])
                     .then((taskDataBaseKeyValue)=>{
                         // console.log(JSON.stringify(taskDataBase));
@@ -653,11 +535,10 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         const targetOrderInfo = remFeeDataBase[orderID];
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
-                        tabID = targetTabID;
                         // console.log("target tab ID in storage before background script click submission button", tabID);  
                         // console.log("tabID before scripting", tabID);
                         chrome.scripting.executeScript(
-                            { target: {tabId: tabID },
+                            { target: {tabId: targetTabID },
                               world: "MAIN",
                               func: ()=>{
                                 const hitSendBtn = ()=>{
@@ -693,8 +574,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                     return true;
                 }
                 else if (message.info.action == actions.removeAlertsFromWindow){
-                    let tabID;
-                    updateTaskDB();
+                    updateTaskDB(tabID);
                     chrome.storage.local.get([localStorageKeys.taskDataBase])
                     .then((taskDataBaseKeyValue)=>{
                         // console.log(JSON.stringify(taskDataBase));
@@ -705,11 +585,11 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                         const targetOrderInfo = remFeeDataBase[orderID];
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
-                        tabID = targetTabID;
+                        console.log("TAB ID:", targetTabID);
                         // console.log("target tab ID in storage before background script click submission button", tabID);  
                         // console.log("tabID before scripting", tabID);
                         chrome.scripting.executeScript(
-                            { target: { tabId: tabID },
+                            { target: { tabId: targetTabID },
                               world: "MAIN",
                               func: ()=>{
                                 window.alert = function() {}; 

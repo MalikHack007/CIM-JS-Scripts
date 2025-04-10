@@ -59,6 +59,6 @@ Add function to manually alter data base.
 Ticket# 14:
 have the program check the sender name before approving
 
-ticket#15: make sure the software does not register done by master/others from cases that never existed in the DB. 
+ticket 15:
+Fix the tabID confusion issue when it comes to auto scripting
 
-ticket#16: Keep track of the tabIDs of the tabs opened by extension. Ignore manually opened tabs.

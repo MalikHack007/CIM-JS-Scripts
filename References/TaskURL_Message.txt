@@ -1,0 +1,8 @@
+{
+    type: messageTypes.taskURLs, 
+    info: {
+        taskType: aisNames.remFeeCollect, 
+        URLS: allViableUrls
+    }
+}
+

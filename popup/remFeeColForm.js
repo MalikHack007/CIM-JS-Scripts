@@ -732,7 +732,11 @@ preLoadMsgBtn.onclick = ()=>{
   const message = customizedMessage(formDataObject, orderID);
   const messageInputs = formDataObject;
   //send a message to the background to store it
-  const finalPayload = {taskType, orderID, message, messageInputs}
+  const finalPayload = {taskType, 
+                        orderID, 
+                        message, 
+                        messageInputs
+                      }
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
   chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
     //close the window
@@ -765,7 +769,7 @@ msgEnterBtn.onclick = ()=>{
     const message = customizedMessage(formDataObject, orderID);
     const messageInputs = formDataObject;
     //send a message to the background to store it
-    const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage, tabID:tabID};
+    const finalPayload = {taskType, orderID, message, messageInputs, msgSent: true, action: actions.writeMessage};
     const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
     chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
           //close the window
@@ -808,7 +812,7 @@ runTaskBtn.onclick = ()=>{
                         msgSent: true, 
                         action: actions.runRemFeeTask, 
                         scriptingInProgress: true, 
-                        tabID: tabID
+                        // tabID: tabID
                         };
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
   chrome.runtime.sendMessage(finalMessageToBG).then(()=>{
