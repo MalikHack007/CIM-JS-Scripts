@@ -56,9 +56,8 @@ Add functionality to keep track of who took different tasks.
 
 Ticket #13:
 Add function to manually alter data base.
+
 Ticket# 14:
 have the program check the sender name before approving
 
-ticket 15:
-Fix the tabID confusion issue when it comes to auto scripting
 

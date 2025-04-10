@@ -72,9 +72,6 @@ sendMsgToUpdteTskDB({
 
 *Please note: both the queue and queueType will come from queue objects stored within [queues object](#queues-object) defined prior in the background script.*
 
-#### ⚙️ Optional:
-
-- **`tabID`** (`number`): Tab ID information when it's needed. 
 
 ## Queues Object:
 
@@ -212,6 +209,10 @@ An object containing the type of task as its keys, and **`tab&window managment o
 ```
 
 
+## Please Collect Remaining Fee Task Scripting
 
+### Messaging Logic:
+
+![Flowchart](runRemFeeTaskMessagingLogic.drawio.png)
 
 

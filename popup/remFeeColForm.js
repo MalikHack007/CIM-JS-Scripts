@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const earlierCaseTypeInput = document.querySelector('input[name="earlierCaseType"]');
 
-  const additionalPPFormField = document.querySelector('#additionalPPInfoBox');
   const pdIsCurrentRadios = document.querySelectorAll('input[name="priorityDateIsCurrent"]')
   const anotherPDRadios = document.querySelectorAll('input[name="anotherPriorityDate"]')
 
@@ -689,7 +688,6 @@ function customizedMessage(finalDetails, orderID){
 const urlParams = new URLSearchParams(window.location.search);
 const orderID = urlParams.get('orderID');
 const taskType = urlParams.get('taskType');
-const tabID = urlParams.get('tabID');
 
 const preLoadMsgBtn = document.querySelector('#msgPreload');
 
@@ -812,7 +810,6 @@ runTaskBtn.onclick = ()=>{
                         msgSent: true, 
                         action: actions.runRemFeeTask, 
                         scriptingInProgress: true, 
-                        // tabID: tabID
                         };
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
   chrome.runtime.sendMessage(finalMessageToBG).then(()=>{

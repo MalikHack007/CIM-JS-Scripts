@@ -524,19 +524,17 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                      
                 }
                 else if (message.info.action == actions.sendMessage){
-                    // updateTaskDB(senderObject.tab.id);
+
                     chrome.storage.local.get([localStorageKeys.taskDataBase])
                     .then((taskDataBaseKeyValue)=>{
-                        // console.log(JSON.stringify(taskDataBase));
 
                         const taskDataBase = taskDataBaseKeyValue[localStorageKeys.taskDataBase];
                         const remFeeDataBase = taskDataBase[aisNames.remFeeCollect];
-                        // console.log(JSON.stringify(remFeeDataBase));
+
                         const targetOrderInfo = remFeeDataBase[orderID];
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
-                        // console.log("target tab ID in storage before background script click submission button", tabID);  
-                        // console.log("tabID before scripting", tabID);
+
                         chrome.scripting.executeScript(
                             { target: {tabId: targetTabID },
                               world: "MAIN",
@@ -574,20 +572,18 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                     return true;
                 }
                 else if (message.info.action == actions.removeAlertsFromWindow){
-                    updateTaskDB(tabID);
+                    updateTaskDB();
                     chrome.storage.local.get([localStorageKeys.taskDataBase])
                     .then((taskDataBaseKeyValue)=>{
-                        // console.log(JSON.stringify(taskDataBase));
 
                         const taskDataBase = taskDataBaseKeyValue[localStorageKeys.taskDataBase];
                         const remFeeDataBase = taskDataBase[aisNames.remFeeCollect];
-                        // console.log(JSON.stringify(remFeeDataBase));
+
                         const targetOrderInfo = remFeeDataBase[orderID];
                         
                         const targetTabID = Number(targetOrderInfo.tabID);
-                        console.log("TAB ID:", targetTabID);
-                        // console.log("target tab ID in storage before background script click submission button", tabID);  
-                        // console.log("tabID before scripting", tabID);
+
+
                         chrome.scripting.executeScript(
                             { target: { tabId: targetTabID },
                               world: "MAIN",

@@ -409,15 +409,12 @@ openRemFeeColFormBtn.onclick = ()=>{
     chrome.tabs.query(queryCriteria, (tabs)=>{
         const currentTab = tabs[0];
         const currentURL = currentTab.url;
-        console.log(`current tab url: ${currentURL}`);
-        const orderID = parseOrderId(currentURL)
-        const targetTabID = currentTab.id;
-        console.log(`tabID read from popup script: ${targetTabID}`);
+        const orderID = parseOrderId(currentURL);
         
         // console.log(`orderID: ${orderID}`);
 
         chrome.windows.create({
-            url: `popup/remFeeCollectForm.html?orderID=${orderID}&taskType=${aisNames.remFeeCollect}&tabID=${targetTabID}`,
+            url: `popup/remFeeCollectForm.html?orderID=${orderID}&taskType=${aisNames.remFeeCollect}`,
             type: "popup",
             width: 400,
             height: 600
