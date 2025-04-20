@@ -41,7 +41,9 @@
 
       "tabs",
 
-      "scripting"
+      "scripting",
+
+      "tabGroups"
     ],
 
     "host_permissions":[

@@ -169,38 +169,19 @@ An object containing the type of task as its keys, and **`tab&window managment o
 
 {
 
-    "Actively Managed Tabs": {
+    "Task Browser Management": {
         "Please Post Remaining Fee Message": {
         "TabIDs": [
             2000996236,
             2000996237,
-            2000996240,
-            2000996243,
-            2000996246,
-            2000996249,
-            2000996252,
-            2000996255,
-            2000996258,
-            2000996261,
-            2000996264,
-            2000996267,
-            2000996270,
-            2000996273,
-            2000996276,
-            2000996279,
-            2000996282,
-            2000996285,
-            2000996288,
-            2000996291,
-            2000996294,
-            2000996297,
-            2000996300,
-            2000996323,
-            2000996450,
-            2000996491,
-            2000996509
+            2000996240
         ],
-        "WindowID": "WindowID"
+        "WindowID": 2304832748,
+        "GroupMap": 
+            {"Available": 12345,
+             "Pending": 67890,
+             "Aborted": 282479   
+            }
         }
     }
 

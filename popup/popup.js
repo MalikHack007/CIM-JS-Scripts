@@ -56,7 +56,8 @@ const messageTypes = {
 
 const localStorageKeys = {
     scriptRunningStatusesDB: "Scripts Statuses",
-    taskDataBase: "Task Database"
+    taskDataBase: "Task Database",
+    activelyManagedTabs: "Task Browser Management"
 }
 
 const taskers = {
@@ -184,20 +185,16 @@ const setScriptStatusStop = (script)=>{
 }
 
 const setScriptStatusRun = (script)=>{
-    if(script == scriptNames.remFeeFetch){
-        let windowID;
-        chrome.windows.getCurrent()
-            .then((window)=>{
-                windowID = window.id;
-                const storageObject = {
-                    [script]: runningStatuses.runningStatus, 
-                    ScriptWindowID: windowID
-                };
-                chrome.runtime.sendMessage({
-                    type: messageTypes.setScriptRunStatus,
-                    info: storageObject
-                })
-            })   
+    if(script == scriptNames.remFeeFetch){  
+        const payload = {
+            taskType: aisNames.remFeeCollect,
+            scriptName: scriptNames.remFeeFetch,
+            scriptStatus: runningStatuses.runningStatus
+        }
+        chrome.runtime.sendMessage({
+            type: messageTypes.setScriptRunStatus,
+            info: payload
+        })
     }
     else{
         const storageObject = {[script] : runningStatuses.runningStatus};

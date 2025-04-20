@@ -5,6 +5,20 @@ const remFeeKeySteps = {
     markOffAIS: "Mark off AIS"
 }
 
+const PPRFM_GROUP_NAMES = {
+    Available: "Available",
+    Pending: "Pending",
+    Aborted: "Aborted",
+    Done: "Done"
+}
+
+const PPRFM_GROUP_COLORS = {
+    Available: "green",
+    Pending: "red",
+    Aborted: "orange",
+    Done: "grey"
+}
+
 const scriptNames = {
     remFeeWatch: "Remaining Fee Task Watcher",
     remFeeFetch: "Remaining Fee Task Fetcher"
@@ -46,7 +60,7 @@ const remFeeFetTask = "remFeeFetchingStatus";
 const localStorageKeys = {
     scriptRunningStatusesDB: "Scripts Statuses",
     taskDataBase: "Task Database",
-    activelyManagedTabs: "Actively Managed Tabs"
+    activelyManagedTabs: "Task Browser Management"
 }
 
 
@@ -97,6 +111,219 @@ function generateUniqueId() {
 
 function delay(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const newTabGroup = (taskType, orderID, tabGroupTitle, tabGroupColor)=>{
+
+    /*
+    This function creates a new tab group and move the target task tab to that tab group,
+    and then it will update the Task Browser Managment Database accordingly.
+    */
+    return new Promise((resolve, reject)=>{
+        //Obtain the tabID for the specific order
+        chrome.storage.local.get(localStorageKeys.taskDataBase)
+            .then((result)=>{
+                const targetTabID = result?.[localStorageKeys.taskDataBase]?.[taskType]?.[orderID]?.tabID;                                                   
+                if(targetTabID){
+                    //Create a new tab group using the obtained tabID
+                    chrome.tabs.group( {tabIds:[targetTabID]} )
+                        .then((groupId)=>{
+                            //update the group information
+                            console.log("Debug groupID:", groupId);
+                            chrome.tabGroups.update(groupId, {
+                                title: tabGroupTitle,
+                                color: tabGroupColor
+                            })                                                                                             
+                            .then(()=>{
+                                //update the group id to Task Browser Managment
+                                chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
+                                    .then((result)=>{
+                                        const TaskBMgmtDB = result?.[localStorageKeys.activelyManagedTabs];
+                                        const taskSpecific = TaskBMgmtDB?.[taskType];
+                                        const groupMap = taskSpecific?.GroupMap;
+                                        if(TaskBMgmtDB && taskSpecific && groupMap){
+                                            const updatedTBM = {
+                                                [localStorageKeys.activelyManagedTabs]: {
+                                                    ...TaskBMgmtDB,
+                                                    [taskType]:{
+                                                        ...taskSpecific,
+                                                        GroupMap: {
+                                                            ...groupMap,
+                                                            [tabGroupTitle]:groupId
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            chrome.storage.local.set(updatedTBM)
+                                                .then(()=>{
+                                                    resolve();
+                                                })  
+                                        }
+                                        else{
+                                            reject("NOT ABLE TO READ TASK BROWSER MGMT DB.");
+                                        }                                                     
+                                    })
+                            })
+                        })
+                }
+                else{
+                    reject("Unable to read tabID!");
+                }
+            })
+    })
+}
+
+const moveToExistingTabGroup = (taskType, orderID, groupID)=>{
+    return new Promise((resolve, reject)=>{
+        //put the tab in the existing tab group
+        chrome.storage.local.get(localStorageKeys.taskDataBase)
+        .then((result)=>{
+            const targetTabID = result?.[localStorageKeys.taskDataBase]?.[taskType]?.[orderID]?.tabID;
+            if(targetTabID){
+                chrome.tabs.group({
+                    tabIds:[targetTabID],
+                    groupId: groupID
+                })
+                .then(()=>{
+                    resolve();
+                })
+            }
+            else{
+                reject("Cannot read tab ID.")
+            }
+        })
+    })
+}
+
+const generateTBMForTask = (scriptWindowID, taskType)=>{
+    //This function will either return a tbm for the task or an empty object if 
+    //it cannot determine the correct groupmap. 
+
+    //region definitions
+    let groupmap = {};
+    if(taskType == aisNames.remFeeCollect){
+        for (const key in PPRFM_GROUP_NAMES){
+            groupmap[PPRFM_GROUP_NAMES[key]] = null;
+        }
+    }
+    //#endregion
+    if(Object.keys(groupmap).length === 0){
+        return groupmap;
+    }
+
+    else{
+        const tbmForTask = {
+            [taskType]:{
+                WindowID: scriptWindowID,
+                GroupMap: groupmap,
+                TabIDs: []
+            }
+        }
+        return tbmForTask;
+    }
+}
+
+const initializeTBM = (scriptWindowID, taskType)=>{
+    return new Promise((resolve, reject)=>{
+        //region definitions
+        const tbmForTask = generateTBMForTask(scriptWindowID, taskType);
+        //#endregion
+
+        if(Object.keys(tbmForTask).length === 0){
+            reject("cannot initialize the tbm for task");
+        }
+
+        else{
+            const finalPayLoad = {
+                [localStorageKeys.activelyManagedTabs]: {
+                    ...tbmForTask
+                }
+            }
+    
+            chrome.storage.local.set(finalPayLoad)
+                .then(()=>{
+                    resolve();
+                })
+                .catch((error)=>{
+                    reject(error);
+                })
+        }
+    })
+}
+
+
+
+const moveToAppropriateTabGroup = (statusTask, taskType, orderID)=>{
+    return new Promise((resolve, reject)=>{
+        //region definitions
+        let tabGroupTitle;
+        let tabGroupColor;
+
+        if(statusTask == taskStatuses.statusAvail){
+            tabGroupTitle = PPRFM_GROUP_NAMES.Available;
+            tabGroupColor = PPRFM_GROUP_COLORS.Available;
+        }
+        else if(statusTask == taskStatuses.statusPend){
+            tabGroupTitle = PPRFM_GROUP_NAMES.Pending;
+            tabGroupColor = PPRFM_GROUP_COLORS.Pending;
+        }
+        //CAUTION: Waiting to further finalize the taskStatuses.
+        else if(statusTask == taskStatuses.statusDisqualified){
+            tabGroupTitle = PPRFM_GROUP_NAMES.Aborted;
+            tabGroupColor = PPRFM_GROUP_COLORS.Aborted;
+        }
+        else if(statusTask == taskStatuses.statusMaster){
+            tabGroupTitle = PPRFM_GROUP_NAMES.Done;
+            tabGroupColor = PPRFM_GROUP_COLORS.Done;
+        }
+
+        //#endregion
+        if(tabGroupTitle&&tabGroupColor){
+            //First look at the GroupMap for the specific taskType
+            chrome.storage.local.get([localStorageKeys.activelyManagedTabs])
+                .then((result)=>{
+                    const existingGroupID = result?.[localStorageKeys.activelyManagedTabs]?.[taskType]?.GroupMap?.[tabGroupTitle];
+                    //If there is a group id for available
+                    if(existingGroupID){
+                        chrome.tabGroups.get(existingGroupID)
+                            .then(()=>{
+                                moveToExistingTabGroup(taskType, orderID, existingGroupID)
+                                .then(()=>{
+                                    resolve();
+                                })
+                                .catch((error)=>{
+                                    reject(error);
+                                })
+                            })
+                            .catch(()=>{
+                                //create a new tab group
+                                newTabGroup(taskType, orderID, tabGroupTitle, tabGroupColor)
+                                    .then(()=>{
+                                        resolve();
+                                    })
+                                    .catch((error)=>{
+                                        reject(error);
+                                    })
+                            })
+                    }
+                    //if it's null
+                    else{
+                        //create a new tab group
+                        newTabGroup(taskType, orderID, tabGroupTitle, tabGroupColor)
+                            .then(()=>{
+                                resolve();
+                            })
+                            .catch((error)=>{
+                                reject(error);
+                            })
+                    }
+                })
+        }
+        else{
+            resolve();
+        }
+    })
 }
 
 const processQueue = (queue, queueType)=>{
@@ -159,61 +386,119 @@ const processQueue = (queue, queueType)=>{
         //else if there's still msg left for processing
         isProcessingBooleans.isProcessingTaskDB = true;
         
-        chrome.storage.local.get(localStorageKeys.taskDataBase, (result)=>{
-            if(result[localStorageKeys.taskDataBase]){
-                const taskInfoDB = result[localStorageKeys.taskDataBase];
-                if(taskInfoDB[taskType]){
-                    const remFeeDB = taskInfoDB[taskType];
-                    if(remFeeDB[orderID]){
-                        const remFeeTaskInfo = remFeeDB[orderID];
-                        Object.assign(remFeeTaskInfo, relevantDetails[orderID]);
-                        const newRemFeeDBItem = {[orderID]: remFeeTaskInfo};
-                        Object.assign(remFeeDB, newRemFeeDBItem);
-                        const newTaskInfoDBItem = {[taskType]: remFeeDB};
-                        Object.assign(taskInfoDB, newTaskInfoDBItem);
-                        const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB}
-                        // console.log(`writing into local storage(key:value)${JSON.stringify(finalOutput)}`);
-                        chrome.storage.local.set(finalOutput, ()=>{
-                            processQueue(queue, queueType);
-                        })
+        chrome.storage.local.get(localStorageKeys.taskDataBase)
+            .then((result)=>{
+                if(result[localStorageKeys.taskDataBase]){
+                    const taskInfoDB = result[localStorageKeys.taskDataBase];
+                    if(taskInfoDB[taskType]){
+                        const remFeeDB = taskInfoDB[taskType];
+                        if(remFeeDB[orderID]){
+                            const remFeeTaskInfo = remFeeDB[orderID];
+                            Object.assign(remFeeTaskInfo, relevantDetails[orderID]);
+                            const newRemFeeDBItem = {[orderID]: remFeeTaskInfo};
+                            Object.assign(remFeeDB, newRemFeeDBItem);
+                            const newTaskInfoDBItem = {[taskType]: remFeeDB};
+                            Object.assign(taskInfoDB, newTaskInfoDBItem);
+                            const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB}
+                            //Additionally handle tab grouping when it comes to status update
+                            if(currentItem.taskStatus){
+                                chrome.storage.local.set(finalOutput)
+                                    .then(()=>{
+                                        moveToAppropriateTabGroup(currentItem.taskStatus, taskType, orderID)
+                                            .then(()=>{
+                                                processQueue(queue, queueType);
+                                            })
+                                            .catch((error)=>{
+                                                console.log(error);
+                                            })
+                                    })
+
+                            }
+                            else{
+                                chrome.storage.local.set(finalOutput, ()=>{
+                                    // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                                    processQueue(queue, queueType)
+                                });
+                            }
+                        }
+                        else{
+                            Object.assign(remFeeDB, relevantDetails);
+                            const remFeeDBUpdated = {[taskType]: remFeeDB};
+                            Object.assign(taskInfoDB, remFeeDBUpdated);
+                            const finalOutput = { [localStorageKeys.taskDataBase]: taskInfoDB }
+                            //Additionally handle tab grouping when it comes to status update
+                            if(currentItem.taskStatus){
+                                chrome.storage.local.set(finalOutput)
+                                    .then(()=>{
+                                        moveToAppropriateTabGroup(currentItem.taskStatus, taskType, orderID)
+                                            .then(()=>{
+                                                processQueue(queue, queueType);
+                                            })
+                                            .catch((error)=>{
+                                                console.log(error);
+                                            })
+                                    })
+
+                            }
+                            else{
+                                chrome.storage.local.set(finalOutput, ()=>{
+                                    // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                                    processQueue(queue, queueType)
+                                });
+                            }
+                        }
                     }
                     else{
-                        Object.assign(remFeeDB, relevantDetails);
-                        const remFeeDBUpdated = {[taskType]: remFeeDB};
-                        Object.assign(taskInfoDB, remFeeDBUpdated);
-                        const finalOutput = { [localStorageKeys.taskDataBase]: taskInfoDB }
-                        chrome.storage.local.set(finalOutput, ()=>{
-                            processQueue(queue, queueType);
-                        });
+                        Object.assign(taskInfoDB, taskTypeDBInit);
+                        const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB};
+                        //Additionally handle tab grouping when it comes to status update
+                        if(currentItem.taskStatus){
+                            chrome.storage.local.set(finalOutput)
+                                .then(()=>{
+                                    moveToAppropriateTabGroup(currentItem.taskStatus, taskType, orderID)
+                                        .then(()=>{
+                                            processQueue(queue, queueType);
+                                        })
+                                        .catch((error)=>{
+                                            console.log(error);
+                                        })
+                                })
+
+                        }
+                        else{
+                            chrome.storage.local.set(finalOutput, ()=>{
+                                // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                                processQueue(queue, queueType)
+                            });
+                        }
                     }
                 }
                 else{
-                    Object.assign(taskInfoDB, taskTypeDBInit);
-                    const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDB};
-                    chrome.storage.local.set(finalOutput, ()=>{
-                        processQueue(queue, queueType)
-                    })
+                    const finalOutput = {[localStorageKeys.taskDataBase]: taskTypeDBInit};
+                    //Additionally handle tab grouping when it comes to status update
+                    if(currentItem.taskStatus){
+                        chrome.storage.local.set(finalOutput)
+                            .then(()=>{
+                                moveToAppropriateTabGroup(currentItem.taskStatus, taskType, orderID)
+                                    .then(()=>{
+                                        processQueue(queue, queueType);
+                                    })
+                                    .catch((error)=>{
+                                        console.log(error);
+                                    })
+                            })
+
+                    }
+                    else{
+                        chrome.storage.local.set(finalOutput, ()=>{
+                            // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
+                            processQueue(queue, queueType)
+                        });
+                    }
                 }
-                /*
-                const taskInfoDBUpdated = Object.assign(taskInfoDB, currentItem)
-                const finalOutput = {[localStorageKeys.taskDataBase]: taskInfoDBUpdated};
-                chrome.storage.local.set(finalOutput, ()=>{
-                    console.log(`Task added: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
-                    processQueue(queue, queueType);
-                });
-                */
-            }
-            else{
-                const finalOutput = {[localStorageKeys.taskDataBase]: taskTypeDBInit};
-                chrome.storage.local.set(finalOutput, ()=>{
-                    // console.log(`Task database initiated: ${JSON.stringify(finalOutput[localStorageKeys.taskDataBase])}`, "Moving onto the next msg...");
-                    processQueue(queue, queueType)
-                });
-            }
-        })
+            })
 
     }
-
     else if (queueType == localStorageKeys.scriptRunningStatusesDB){
         //if there is no more message in the queue
         // console.log(`Selected for queue type:${JSON.stringify(queueType)}`);
@@ -240,79 +525,99 @@ const processQueue = (queue, queueType)=>{
             }
         })
     }
+    //Task Browser Managment DB change
     else if(queueType == localStorageKeys.activelyManagedTabs){
+
         if(queue.length === 0){
             isProcessingBooleans.isProcessingTabIDs = false;
             return;
         }
+
         const currentItem = queue.shift();
+
         chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
             .then((result)=>{
-                if(result[localStorageKeys.activelyManagedTabs]){
-                    const activeMgedTabs = result[localStorageKeys.activelyManagedTabs];
-                    if(activeMgedTabs[currentItem.taskType]){
-                        const tabMgmentObj = activeMgedTabs[currentItem.taskType];
-                        if(tabMgmentObj.TabIDs){
-                            const tabIDArr = tabMgmentObj.TabIDs;
-                            tabIDArr.push(currentItem.tabID);
-                            const newEntrytoTabMgmtObj = {"TabIDs" : tabIDArr};
-                            Object.assign(tabMgmentObj, newEntrytoTabMgmtObj);
-                            const newEntryToActiveTabs = {[currentItem.taskType] : tabMgmentObj};
-                            Object.assign(activeMgedTabs, newEntryToActiveTabs);
-                            const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
-                            chrome.storage.local.set(finalPayLoad)
+                //If task browser managment DB has already been initialized
+                const activeMgedTabs = result?.[localStorageKeys.activelyManagedTabs];
+                if(activeMgedTabs){
+                    const taskSpecificBM = activeMgedTabs?.[currentItem.taskType];
+                    if(taskSpecificBM){
+                        //Window ID field update                     
+                        if(currentItem.ScriptWindowID){
+
+                            const finalPayload = {[localStorageKeys.activelyManagedTabs]:{
+                                ...activeMgedTabs,
+                                [currentItem.taskType]:{
+                                    ...taskSpecificBM,
+                                    WindowID: currentItem.ScriptWindowID
+                                }
+                            }}
+
+                            chrome.storage.local.set(finalPayload)
                                 .then(()=>{
+                                    processQueue(queue, queueType);
+                                })       
+                                .catch((error)=>{
+                                    console.log(error);
                                     processQueue(queue, queueType);
                                 })
                         }
-                        else{
-                            const newTabIDArr = [currentItem.tabID];
-                            const newEntrytoTabMgmtObj = {"TabIDs" : newTabIDArr};
-                            Object.assign(tabMgmentObj, newEntrytoTabMgmtObj);
-                            const newEntryToActiveTabs = {[currentItem.taskType] : tabMgmentObj};
-                            Object.assign(activeMgedTabs, newEntryToActiveTabs);
-                            const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : activeMgedTabs};
-                            chrome.storage.local.set(finalPayLoad)
-                                .then(()=>{
-                                    processQueue(queue, queueType);
-                                })
+                        //tab ID update
+                        else if(currentItem.tabID){
+                            if(taskSpecificBM.TabIDs){
+                                const finalPayLoad = {
+                                    [localStorageKeys.activelyManagedTabs]:{
+                                        ...activeMgedTabs,
+                                        [currentItem.taskType]:{
+                                            ...taskSpecificBM,
+                                            TabIDs: [...taskSpecificBM.TabIDs, currentItem.tabID]
+                                        }
+                                    }
+                                }
+                                chrome.storage.local.set(finalPayLoad)
+                                    .then(()=>{
+                                        processQueue(queue, queueType);
+                                    })
+                                    .catch((error)=>{
+                                        console.log(error);
+                                        processQueue(queue, queueType);
+                                    })
+                            }
                         }
                     }
                     //first entry at the task type level
                     else{
-                        // const tabIDArr = [currentItem.tabID];
-                        // const newEntry = {[currentItem.taskType] : tabIDArr};
-                        // Object.assign(activeMgedTabs, newEntry);
-                        // const finalPayLoad = {[localStorageKeys.activeMgedTabs] : activeMgedTabs};
-                        // chrome.storage.local.set(finalPayLoad)
-                        //     .then(()=>{
-                        //         processQueue(queue, queueType);
-                        //     })
-                        console.log("No window ID.")
-                    }
-                }
-                //first entry at the database level
-                else{
-                    if(currentItem.ScriptWindowID){
-                        const scriptWindowID = currentItem.ScriptWindowID;
-                        const entryInTaskSpecificDB = { WindowID: scriptWindowID };
-                        const activeMgedDB = { [aisNames.remFeeCollect] : entryInTaskSpecificDB};
-                        const finalPayLoad = { [localStorageKeys.activelyManagedTabs] : activeMgedDB };
-                        chrome.storage.local.set(finalPayLoad)
+                        
+                        const entryInBrowMgmt = generateTBMForTask(currentItem.ScriptWindowID, currentItem.taskType);
+
+                        const finalPayloadToLocalStorage = { [localStorageKeys.activelyManagedTabs] : {
+                            ...activeMgedTabs,
+                            ...entryInBrowMgmt
+                        }};
+
+                        chrome.storage.local.set(finalPayloadToLocalStorage)
                             .then(()=>{
                                 processQueue(queue, queueType);
                             })
+                            .catch((error)=>{
+                                console.log(error);
+                                processQueue(queue, queueType);
+                            })
                     }
-                    else{
-                        console.log("Lack of Window ID.")
-                    }
-                    // const tabIDArr = [currentItem.tabID];
-                    // const finalPayLoad = {[localStorageKeys.activelyManagedTabs] : {[currentItem.taskType] : {"TabIDs": tabIDArr}}};
-                    // chrome.storage.local.set(finalPayLoad)
-                    //     .then(()=>{
-                    //         processQueue(queue, queueType);
-                    //     })
-                    
+                }
+
+                //Initializing the "Task Browser Managment" Field    
+                //We are assuming the initializing is only done through fetchers.
+
+                //TODO
+                else{
+                    initializeTBM(currentItem.ScriptWindowID, currentItem.taskType)
+                        .then(()=>{
+                            processQueue(queue, queueType);
+                        })
+                        .catch((error)=>{
+                            console.log(error);
+                        })
                 }
             })
     }
@@ -411,7 +716,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
 
             if(message.info.taskStatus == taskStatuses.statusAvail){
                 if(!message.info.action){
-                    sendAvailableNotification()
+                    sendAvailableNotification();
                     updateTaskDB();
                 }
                 else{
@@ -466,6 +771,7 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
         //Other updates
         else{
             if((!message.info.action)){
+                console.log("DEBUG: CORRECT IF BLOCK ENTERED")
                 updateTaskDB();
             }
             else{
@@ -606,26 +912,38 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
     }
 
     else if(message.type == messageTypes.setScriptRunStatus){
-        if(message.info.ScriptWindowID && message.info[scriptNames.remFeeFetch]){
-            const payloadForScriptRunStatus = {[scriptNames.remFeeFetch] : message.info[scriptNames.remFeeFetch]};
-            const payloadForActiveMgedTabs = {
-                ScriptWindowID: message.info.ScriptWindowID,
-                taskType: aisNames.remFeeCollect
-            }
+        //If setting the script run status for a fetcher
+        if(message.info.scriptName == scriptNames.remFeeFetch){
+            //payload for script statuses DB
+            const payloadForScriptRunStatus = {[message.info.scriptName] : message.info.scriptStatus};
             //update script run status
             queues[localStorageKeys.scriptRunningStatusesDB].queue.push(payloadForScriptRunStatus);
             if(!isProcessingBooleans.isProcessingScriptStatus){
                 // console.log(`script run info queue selected for processing`);
                 processQueue(queues[localStorageKeys.scriptRunningStatusesDB].queue, queues[localStorageKeys.scriptRunningStatusesDB].queueType)
             }
-            //update window ID.
-            queues[localStorageKeys.activelyManagedTabs].queue.push(payloadForActiveMgedTabs);
-            if(!isProcessingBooleans.isProcessingTabIDs){
-                // console.log(`script run info queue selected for processing`);
-                processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType);
-            }
+            //payload for Task Browser Management DB
+            let windowID;
+            let payloadForActiveMgedTabs;
+            chrome.windows.getLastFocused()
+                .then((window)=>{
+                    windowID = window.id;
+                    payloadForActiveMgedTabs = {
+                        taskType: message.info.taskType,
+                        ScriptWindowID: windowID
+                    }
+                    //update window ID in the Task Browser Management DB for 
+                    //the specific task
+                    queues[localStorageKeys.activelyManagedTabs].queue.push(payloadForActiveMgedTabs);
+                    if(!isProcessingBooleans.isProcessingTabIDs){
+                        processQueue(queues[localStorageKeys.activelyManagedTabs].queue, queues[localStorageKeys.activelyManagedTabs].queueType);
+                    }
+                }) 
+                .catch(()=>{
+                    console.log("Cannot get last focused window.")
+                })
         }
-        // console.log(`entered into ${messageTypes.setScriptRunStatus} message handler`)
+
         //push the message payload to its corresponding queue
         else{
             queues[localStorageKeys.scriptRunningStatusesDB].queue.push(message.info)
