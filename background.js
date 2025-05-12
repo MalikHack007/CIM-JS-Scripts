@@ -125,47 +125,57 @@ const newTabGroup = (taskType, orderID, tabGroupTitle, tabGroupColor)=>{
             .then((result)=>{
                 const targetTabID = result?.[localStorageKeys.taskDataBase]?.[taskType]?.[orderID]?.tabID;                                                   
                 if(targetTabID){
-                    //Create a new tab group using the obtained tabID
-                    chrome.tabs.group( {tabIds:[targetTabID]} )
-                        .then((groupId)=>{
-                            //update the group information
-                            console.log("Debug groupID:", groupId);
-                            chrome.tabGroups.update(groupId, {
-                                title: tabGroupTitle,
-                                color: tabGroupColor
-                            })                                                                                             
-                            .then(()=>{
-                                //update the group id to Task Browser Managment
-                                chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
-                                    .then((result)=>{
-                                        const TaskBMgmtDB = result?.[localStorageKeys.activelyManagedTabs];
-                                        const taskSpecific = TaskBMgmtDB?.[taskType];
-                                        const groupMap = taskSpecific?.GroupMap;
-                                        if(TaskBMgmtDB && taskSpecific && groupMap){
-                                            const updatedTBM = {
-                                                [localStorageKeys.activelyManagedTabs]: {
-                                                    ...TaskBMgmtDB,
-                                                    [taskType]:{
-                                                        ...taskSpecific,
-                                                        GroupMap: {
-                                                            ...groupMap,
-                                                            [tabGroupTitle]:groupId
+                    chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
+                        .then((result)=>{
+                            const targetWindowID = result?.[localStorageKeys.activelyManagedTabs]?.[taskType]?.WindowID
+                            if(targetWindowID){
+                                //Create a new tab group using the obtained tabID and windowID for the taskType
+                                chrome.tabs.group( {createProperties:{windowId: targetWindowID}, tabIds:[targetTabID]} )
+                                    .then((groupId)=>{
+                                        //update the group information
+                                        console.log("Debug groupID:", groupId);
+                                        chrome.tabGroups.update(groupId, {
+                                            title: tabGroupTitle,
+                                            color: tabGroupColor
+                                        })                                                                                             
+                                        .then(()=>{
+                                            //update the group id to Task Browser Managment
+                                            chrome.storage.local.get(localStorageKeys.activelyManagedTabs)
+                                                .then((result)=>{
+                                                    const TaskBMgmtDB = result?.[localStorageKeys.activelyManagedTabs];
+                                                    const taskSpecific = TaskBMgmtDB?.[taskType];
+                                                    const groupMap = taskSpecific?.GroupMap;
+                                                    if(TaskBMgmtDB && taskSpecific && groupMap){
+                                                        const updatedTBM = {
+                                                            [localStorageKeys.activelyManagedTabs]: {
+                                                                ...TaskBMgmtDB,
+                                                                [taskType]:{
+                                                                    ...taskSpecific,
+                                                                    GroupMap: {
+                                                                        ...groupMap,
+                                                                        [tabGroupTitle]:groupId
+                                                                    }
+                                                                }
+                                                            }
                                                         }
-                                                    }
-                                                }
-                                            }
 
-                                            chrome.storage.local.set(updatedTBM)
-                                                .then(()=>{
-                                                    resolve();
-                                                })  
-                                        }
-                                        else{
-                                            reject("NOT ABLE TO READ TASK BROWSER MGMT DB.");
-                                        }                                                     
+                                                        chrome.storage.local.set(updatedTBM)
+                                                            .then(()=>{
+                                                                resolve();
+                                                            })  
+                                                    }
+                                                    else{
+                                                        reject("NOT ABLE TO READ TASK BROWSER MGMT DB.");
+                                                    }                                                     
+                                                })
+                                        })
                                     })
-                            })
+                            }
+                            else{
+                                reject("Unable to read window ID!")
+                            }
                         })
+
                 }
                 else{
                     reject("Unable to read tabID!");
