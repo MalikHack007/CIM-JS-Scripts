@@ -11,9 +11,9 @@ const addDelay = (delay=2000)=>{
 
 const remFeeKeySteps = {
     dummyStep: "not initiated",
-    sendInvoice: "Send Invoice(s)",
-    markOffAIS: "Mark off AIS"
+    sendPPWarning: "PP Warning"
 }
+
 const remainingFeeMsgKeywords = {
     touchedKeyWord2: "petition letter", 
     touchedKeyword3: "invoice email", 
@@ -147,7 +147,7 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
 // see if the content script is supposed to be running
 (async () => {
     const result = await chrome.storage.local.get(localStorageKeys.scriptRunningStatusesDB);
-    const status = result?.[localStorageKeys.scriptRunningStatusesDB]?.[scriptNames.remFeeFetch];
+    const status = result?.[localStorageKeys.scriptRunningStatusesDB]?.[scriptNames.remFeeWatch];
     //first check for the running status
     if(status == runningStatuses.runningStatus){   
         chrome.runtime.sendMessage({
@@ -453,11 +453,9 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                     async function autoCompleteTask(){
                         
                         //read into data base
-                        const taskInfoDBKeyValue = await chrome.storage.local.get([localStorageKeys.taskDataBase]);
-                        let taskInfoDB;
-                        let remFeeDB;
-                        let targetOrderInfo;
+                        const taskInfoDBKeyValue = await chrome.storage.local.get(localStorageKeys.taskDataBase);
 
+                        let targetOrderInfo;
 
                         const latestMsgTimeStampArr = Array.from(msgBoxBody.children[0].children[0].children[0].children[1].childNodes)
                         .filter(node => node.nodeType === Node.TEXT_NODE)
@@ -466,17 +464,8 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                         const latestMsgTimeStamp = latestMsgTimeStampArr[0];
 
                         if(taskInfoDBKeyValue){
-                            taskInfoDB = taskInfoDBKeyValue[localStorageKeys.taskDataBase];
-                            if(taskInfoDB){
-                                remFeeDB = taskInfoDB[aisNames.remFeeCollect];
-                                if(remFeeDB){
-                                    targetOrderInfo = remFeeDB[orderID];
-                                }
-                                else{
-                                    return;
-                                }
-                            }
-                            else{
+                            targetOrderInfo = taskInfoDBKeyValue?.[localStorageKeys.taskDataBase]?.[aisNames.remFeeCollect]?.[orderID];
+                            if(!targetOrderInfo){
                                 return;
                             }
                         }
@@ -781,47 +770,20 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                             updateCaseToPreFiling("EB1A", 1);
                         };
                         //#endregion
-                        if(targetOrderInfo){
-                            if (targetOrderInfo.scriptingInProgress){  
-                                //#region BETA FEATURE: Avoiding Collision with Others
-                                const latestMsgBox = msgBoxBody.children[0];
-                                const latestMsgSender = getPendingMsgSender(latestMsgBox);
-                                //IF the latest message is posted by me
-                                if(latestMsgSender == taskers.taskMaster){
-                                    //Look one message down and see if a message of the same
-                                    //type as been posted by someone else via keywords.
-                                    const secondLatestMsgBox = msgBoxBody.children[1];
-                                    //If someone else has already posted a similar message
-                                    //below, terminate the scripting process
-                                    if(secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord2) && secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyword3)&& secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord4)){
+                        if (targetOrderInfo.scriptingInProgress){  
+                            //#region BETA FEATURE: Avoiding Collision with Others
+                            const latestMsgBox = msgBoxBody.children[0];
+                            const latestMsgSender = getPendingMsgSender(latestMsgBox);
+                            //IF the latest message is posted by me
+                            if(latestMsgSender == taskers.taskMaster){
+                                //Look one message down and see if a message of the same
+                                //type as been posted by someone else via keywords.
+                                const secondLatestMsgBox = msgBoxBody.children[1];
+                                //If someone else has already posted a similar message
+                                //below, terminate the scripting process
+                                if(secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord2) && secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyword3)&& secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord4)){
 
-                                        //send a message to update the scripting in progress to false, and then terminate the scripting
-                                        await chrome.runtime.sendMessage(
-                                            {
-                                                type: messageTypes.updateTaskDB,
-                                                info:{
-                                                    taskType: aisNames.remFeeCollect,
-                                                    orderID,
-                                                    scriptingInProgress: false
-                                                }
-                                            }
-                                        )
-                                        console.log("Message by other found, aborted the scripting process.")
-                                        return; 
-
-                                        //Send Message To Background so it gives a notification that this task has been taken,
-                                        //Put the tab in a separate group that's just for "failed to execute."
-
-
-
-                                    }
-                                    //If not, continue with the scripting process by doing nothing 
-                                    //and allowing the program to continue. 
-                                    console.log("Message by others not found, continuing the scripting process.")
-                                }
-                                //IF the latest message IS NOT posted by me:
-                                else{
-                                    //Terminate the scripting process and update the scriptingInProgress to false. 
+                                    //send a message to update the scripting in progress to false, and then terminate the scripting
                                     await chrome.runtime.sendMessage(
                                         {
                                             type: messageTypes.updateTaskDB,
@@ -832,12 +794,38 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                                             }
                                         }
                                     )
-                                    console.log("Latest message is not posted by task master, scripting aborted.")
-
+                                    console.log("Message by other found, aborted the scripting process.")
                                     return; 
-                                }
-                                //#endregion
 
+                                    //Send Message To Background so it gives a notification that this task has been taken,
+                                    //Put the tab in a separate group that's just for "failed to execute."
+
+
+
+                                }
+                                //If not, continue with the scripting process by doing nothing 
+                                //and allowing the program to continue. 
+                                console.log("Message by others not found, continuing the scripting process.")
+                            }
+                            //IF the latest message IS NOT posted by me:
+                            else{
+                                //Terminate the scripting process and update the scriptingInProgress to false. 
+                                await chrome.runtime.sendMessage(
+                                    {
+                                        type: messageTypes.updateTaskDB,
+                                        info:{
+                                            taskType: aisNames.remFeeCollect,
+                                            orderID,
+                                            scriptingInProgress: false
+                                        }
+                                    }
+                                )
+                                console.log("Latest message is not posted by task master, scripting aborted.")
+
+                                return; 
+                            }
+                            //#endregion
+                            if(targetOrderInfo.currentScriptingStep == remFeeKeySteps.dummyStep){
                                 //send a message to background to have the window's alerts removed, also, update the scripting data to the next step
                                 await chrome.runtime.sendMessage({ 
                                     type: messageTypes.updateTaskDB, 
@@ -859,7 +847,7 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                                             await postEB1APPWarning();
                                         }
                                     }
-    
+
                                 }
                                 else{
                                     //simply send the invoice
@@ -876,6 +864,44 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                                 else if(targetOrderInfo.messageInputs.usersCase == "EB1A"){
                                     updateEB1AToPrefile();
                                 }
+                            }
+                            else if(targetOrderInfo.currentScriptingStep == remFeeKeySteps.sendPPWarning){
+                                //send a message to background to have the window's alerts removed, also, update the scripting data to the next step
+                                await chrome.runtime.sendMessage({ 
+                                    type: messageTypes.updateTaskDB, 
+                                    info: { taskType: aisNames.remFeeCollect, orderID, currentScriptingStep: remFeeKeySteps.dummyStep, action: actions.removeAlertsFromWindow }
+                                })
+                                //Approve the previous message first
+                                approveMostRecentMsg();
+                                //get the pp warning message of the order
+                                chrome.storage.local.get(localStorageKeys.taskDataBase)
+                                    .then((result)=>{
+                                        const ppWarningMessage = result?.[localStorageKeys.taskDataBase]?.[aisNames.remFeeCollect]?.[orderID]?.[message]?.ppWarning
+                                        if(ppWarningMessage){
+                                            enterText(ppWarningMessage);
+                                            chrome.runtime.sendMessage({ 
+                                                type: messageTypes.updateTaskDB, 
+                                                info: { taskType: aisNames.remFeeCollect, 
+                                                        orderID, 
+                                                        action: actions.sendMessage 
+                                                        }
+                                            })
+                                            .then((response)=>{
+                                                console.log("response received:", response);
+                                                const sendBtn = document.querySelector('input.btn.btn-secondary.mb-1.ml-1');
+                                                // console.log("content script, btn selected:", sendBtn);
+                                                const event = new MouseEvent("click", {
+                                                    bubbles: true,
+                                                    cancelable: true,
+                                                    view: window,
+                                                });
+                                                sendBtn.dispatchEvent(event);
+                                            })
+                                        }
+                                        else{
+                                            console.log("ERROR: CANNOT READ PP WARNING MESSAGE")
+                                        }
+                                    })
                             }
                         }
 

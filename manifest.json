@@ -53,12 +53,12 @@
     "content_scripts": [
         {
             "matches": ["https://northcms.wenzo.com/order/*"],
-            "js": ["lib/remainingFeeTaskAvailabilityDetection.js"],
+            "js": ["pprfm-scripts/remainingFeeTaskAvailabilityDetection.js"],
             "run_at": "document_end"
         },
         {
           "matches": ["https://northcms.wenzo.com/action-items-summary"],
-          "js":["lib/remainingFeeTaskSearcher.js"],
+          "js":["pprfm-scripts/remainingFeeTaskSearcher.js"],
           "run_at": "document_end"
         }
     ]

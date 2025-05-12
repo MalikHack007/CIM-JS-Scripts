@@ -411,7 +411,7 @@ openRemFeeColFormBtn.onclick = ()=>{
         // console.log(`orderID: ${orderID}`);
 
         chrome.windows.create({
-            url: `popup/remFeeCollectForm.html?orderID=${orderID}&taskType=${aisNames.remFeeCollect}`,
+            url: `pprfm-scripts/remFeeCollectForm.html?orderID=${orderID}&taskType=${aisNames.remFeeCollect}`,
             type: "popup",
             width: 400,
             height: 600

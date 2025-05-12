@@ -1,6 +1,6 @@
 
 //IMPORT ADD COMMA UTILITY
-import {addComma} from "../UTILITIES/custom-utils.js";
+import {addComma} from "../lib/UTILITIES/custom-utils.js";
 
 export function generateFeeCollectionMessage(caseDetails, orderID){
     const filingFee = 715;
@@ -53,9 +53,11 @@ export function generateFeeCollectionMessage(caseDetails, orderID){
     
         handlePP: {       
             handlePPInvoice: function(){
+                const firstTimeDiscovering = ` we noticed in your client record that you plan to file the I-140 with a request for premium processing at 
+                the same time. If so, `;
+                const discussedAboutPPBefore = ` as you plan to file the I-140 with a request for premium processing at the same time, `;
                 const ppFeeInvoiceMsg = `
-                <P>Additionally, we noticed in your client record that you plan to file the I-140 with a request for premium processing at 
-                the same time. If so, an additional $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting 
+                <P>Additionally,${caseDetails.ppInfoIsProvided ? discussedAboutPPBefore : firstTimeDiscovering}an additional $2,805 for the premium processing fee is also due (USCIS increased the fee from $2,500 to $2,805 starting 
                 February 26, 2024).</p>
                 <p>&nbsp;</p>
                 `;
@@ -173,7 +175,7 @@ export function generateFeeCollectionMessage(caseDetails, orderID){
                 $${addComma(totalFilingFees+caseDetails.remainingAttorneyFee-caseDetails.filingFeeCredit)} 
                 (=${handleCaseDetails.handleUnpaidAttyFee.secondPlace()}$${filingFee} filing fee + $${asylumFee} asylum program fee${handleCaseDetails.handleFFCredit()})${handleCaseDetails.handlePP.invoiceParagraph().ppInvoice}We accept payments via Zelle, wire transfer, counter deposit, 
                 and credit card, etc. Please follow the instructions attached to the invoice email and make a payment 
-                at your earliest convenience.${handleCaseDetails.handlePP.invoiceParagraph().ppInvoice2}</P><p>&nbsp;</p>`,//UPDATED
+                at your earliest convenience. ${handleCaseDetails.handlePP.invoiceParagraph().ppInvoice2}</P><p>&nbsp;</p>`,//UPDATED
 
         part4: `
         <p>Please note that Stripe charges a <strong>2% service fee</strong> for all credit/debit card transactions, and PayPal charges a <strong>2.5% service fee</strong> for all 
@@ -206,6 +208,10 @@ export function generateFeeCollectionMessage(caseDetails, orderID){
 }
 
 export function generatePPWarningMessage(caseDetails){
+    //TODO: Add a new parameter to distinguish old from new.
+    if(caseDetails.ppInfoIsProvided){
+        return "";
+    }
     const niwPT = 45;
     const eb1aPT = 15;
     const handleCaseDetails = {
@@ -229,8 +235,8 @@ export function generatePPWarningMessage(caseDetails){
         },
 
         serviceCenterRelatedInfo: function(){
-            const nscNIW = `<p>If you still decide to request premium processing for your NIW case after knowing the risk, we recommend filing to the Nebraska Service Center (NSC) under regular processing first. After you receive the receipt notice, you may upgrade to premium processing. Our data shows that for NIW cases filed to NSC, the strategy of upgrading to premium processing after the receipt notice yields higher approval rates compared to submitting an upfront premium processing request. Please note that we do not have a specific recommended timeframe for when to upgrade after receiving the receipt notice; the decision is entirely up to you.</p><p>nbsp;</p>`;
-            const tscNIW = `<p>If your NIW petition can only be filed to the Texas Service Center (TSC) and cannot be routed to Nebraska Service Center (NSC), and you still decide to proceed with premium processing after knowing the risk, then we recommend submitting the premium processing request directly. Our data shows that for NIW cases filed to TSC, those that include an upfront PP request have a higher approval rate than those that upgrade to PP at a later stage.</p><p>nbsp;</p>`;
+            const nscNIW = `<p>If you still decide to request premium processing for your NIW case after knowing the risk, we recommend filing to the Nebraska Service Center (NSC) under regular processing first. After you receive the receipt notice, you may upgrade to premium processing. Our data shows that for NIW cases filed to NSC, the strategy of upgrading to premium processing after the receipt notice yields higher approval rates compared to submitting an upfront premium processing request. Please note that we do not have a specific recommended timeframe for when to upgrade after receiving the receipt notice; the decision is entirely up to you.</p><p>&nbsp;</p>`;
+            const tscNIW = `<p>If your NIW petition can only be filed to the Texas Service Center (TSC) and cannot be routed to Nebraska Service Center (NSC), and you still decide to proceed with premium processing after knowing the risk, then we recommend submitting the premium processing request directly. Our data shows that for NIW cases filed to TSC, those that include an upfront PP request have a higher approval rate than those that upgrade to PP at a later stage.</p><p>&nbsp;</p>`;
             if(caseDetails.usersCase == "NIW"){
                 if(caseDetails.serviceCenter == "Texas Service Center"){
                     return tscNIW;
@@ -245,9 +251,9 @@ export function generatePPWarningMessage(caseDetails){
         },
 
         pdAndCOBSpecificWarning: function(){
-            const clientPacketInfo = `<p>For more information, you may also refer to the "Priority Date Information_How to know if your Priority Date is Current", "Q_A for Premium Processing Service Expansion of EB2-NIW_ I-765_ I-539", and the "Adjustment of Status I-485 v. Immigrant Visa Processing" under the Visa FAQ tab. You may also refer to our recent announcement about the Visa Bulletin. Please note that the FAQ documents provided in our system are intended for general informational purposes only and do not constitute legal advice. If you have any questions after reading the FAQs, please do not hesitate to reach out to your attorneys so that we can advise you accordingly based on your specific situations.</p><p>nbsp;</p>`;
+            const clientPacketInfo = `<p>For more information, you may also refer to the "Priority Date Information_How to know if your Priority Date is Current", "Q_A for Premium Processing Service Expansion of EB2-NIW_ I-765_ I-539", and the "Adjustment of Status I-485 v. Immigrant Visa Processing" under the Visa FAQ tab. You may also refer to our recent announcement about the Visa Bulletin. Please note that the FAQ documents provided in our system are intended for general informational purposes only and do not constitute legal advice. If you have any questions after reading the FAQs, please do not hesitate to reach out to your attorneys so that we can advise you accordingly based on your specific situations.</p><p>&nbsp;</p>`;
             const pdNotCurrentNIW = `<p dir="ltr">As a reminder, requesting Premium Processing Service can only shorten the processing time of your I-140 petition. It does not affect your priority date. Your priority date should be approximately the date USCIS received your I-140 petition. Your priority date is NOT the date USCIS approves your petition. Having the I-140 approval through Premium Processing Service will not expedite the wait time for your priority date to become current.&nbsp;</p><p><span id="docs-internal-guid-9eebe264-7fff-907c-add6-34bdce609692"><br>After your I-140 is approved, even with Premium Processing, you will still need to wait for your priority date to become current in order to proceed with the I-485 or the Immigrant Visa Processing. To check the priority date for people born in your country, please refer to the <a data-mce-href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" target="_blank" rel="noopener">Visa Bulletin</a>.&nbsp;</span><br data-mce-bogus="1"></p><p>&nbsp;</p>`;
-            const pdNotCurrentEB1A = `<p>Also, EB-1 priority dates are not “Current” for applicants born in ${caseDetails.countryOfBirth}, without a clear indication of when the EB-1 priority dates will again become “Current”. If you do not have a priority date earlier than the cut-off date listed on the Visa Bulletin, then you would not be able to proceed with the next step of the green card application even if you receive an I-140 approval on the premium processing timeline. Whether or not you use premium processing, your priority date is set by your date of filing, not by your date of approval. As such, your priority date is not impacted by your decision to use either Premium or Regular Processing. </p><p>nbsp;</p>`;
+            const pdNotCurrentEB1A = `<p>Also, EB-1 priority dates are not “Current” for applicants born in ${caseDetails.countryOfBirth}, without a clear indication of when the EB-1 priority dates will again become “Current”. If you do not have a priority date earlier than the cut-off date listed on the Visa Bulletin, then you would not be able to proceed with the next step of the green card application even if you receive an I-140 approval on the premium processing timeline. Whether or not you use premium processing, your priority date is set by your date of filing, not by your date of approval. As such, your priority date is not impacted by your decision to use either Premium or Regular Processing. </p><p>&nbsp;</p>`;
             if(caseDetails.usersCase == 'EB1A'){
                 if(caseDetails.countryOfBirth == "China" || caseDetails.countryOfBirth == "India"){
                     return pdNotCurrentEB1A + clientPacketInfo;
@@ -270,9 +276,9 @@ export function generatePPWarningMessage(caseDetails){
             const ptNSC = 14;
             const ptTSC = 15;
             const eb1aNotCurrentAdd = `You can choose to file using Premium Processing at a later date should retrogression end before a decision has been reached on your I-140 petition. `;
-            const ptInfo = `${!caseDetails.priorityDateIsCurrent ? eb1aNotCurrentAdd : ""}<p>For your information, without premium processing, the EB1A processing time at ${caseDetails.serviceCenter} is around ${caseDetails.serviceCenter=='Texas Service Center' ? ptTSC : ptNSC} months according to the USCIS processing time website.</p><p>nbsp;</p>`;
+            const ptInfo = `<p>${!caseDetails.priorityDateIsCurrent ? eb1aNotCurrentAdd : ""}For your information, without premium processing, the EB1A processing time at ${caseDetails.serviceCenter} is around ${caseDetails.serviceCenter=='Texas Service Center' ? ptTSC : ptNSC} months according to the USCIS processing time website.</p><p>&nbsp;</p>`;
             const h1bReminder = ` For instance, if you require an I-140 approval to extend your H-1B beyond the six-year cap and you do not have other I-140 pending/approved, you may still wish to request premium processing. If this applies, please update us as to your plans regarding your nonimmigrant status and we can advise accordingly.`;
-            const nivReminder = `<p>Please note that it remains very important to maintain your non-immigrant status throughout the whole process.${caseDetails.h1bIsExpiring ? h1bReminder : ""}</p><p>nbsp;</p>`
+            const nivReminder = `<p>Please note that it remains very important to maintain your non-immigrant status throughout the whole process.${caseDetails.h1bIsExpiring ? h1bReminder : ""}</p><p>&nbsp;</p>`
             if(caseDetails.usersCase == 'EB1A'){
                 return ptInfo + nivReminder;
             }   
@@ -309,7 +315,7 @@ export function generatePPWarningMessage(caseDetails){
 
         part5: `${handleCaseDetails.ptInfoAndNiv()}`,
 
-        part6: `<p><span id="docs-internal-guid-a04b8627-7fff-0f62-5234-6db72f07f038">Please confirm if you would like to proceed with regular processing or premium processing, and <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before filing so that the actual filing plan we proceed with is consistent with your preference.</strong></span><br data-mce-bogus="1"></p><p>nbsp;</p>`,
+        part6: `<p><span id="docs-internal-guid-a04b8627-7fff-0f62-5234-6db72f07f038">Please confirm if you would like to proceed with regular processing or premium processing, and <span style="text-decoration: underline;" data-mce-style="text-decoration: underline;">ensure that your filing plan in regards to premium processing under section 1 of client record is up-to-date to avoid any confusion on our end.</span> <strong>We will have to be made clear about your filing plan well before filing so that the actual filing plan we proceed with is consistent with your preference.</strong></span><br data-mce-bogus="1"></p><p>&nbsp;</p>`,
 
         part7: `${handleCaseDetails.handleFurtherInquiry()}`
     };

@@ -1,8 +1,7 @@
 //#region definitions
 const remFeeKeySteps = {
     dummyStep: "not initiated",
-    sendInvoice: "Send Invoice(s)",
-    markOffAIS: "Mark off AIS"
+    sendPPWarning: "PP Warning"
 }
 
 const PPRFM_GROUP_NAMES = {
@@ -210,7 +209,7 @@ const generateTBMForTask = (scriptWindowID, taskType)=>{
     //This function will either return a tbm for the task or an empty object if 
     //it cannot determine the correct groupmap. 
 
-    //region definitions
+    //#region definitions
     let groupmap = {};
     if(taskType == aisNames.remFeeCollect){
         for (const key in PPRFM_GROUP_NAMES){
@@ -236,7 +235,7 @@ const generateTBMForTask = (scriptWindowID, taskType)=>{
 
 const initializeTBM = (scriptWindowID, taskType)=>{
     return new Promise((resolve, reject)=>{
-        //region definitions
+        //#region definitions
         const tbmForTask = generateTBMForTask(scriptWindowID, taskType);
         //#endregion
 
@@ -266,7 +265,7 @@ const initializeTBM = (scriptWindowID, taskType)=>{
 
 const moveToAppropriateTabGroup = (statusTask, taskType, orderID)=>{
     return new Promise((resolve, reject)=>{
-        //region definitions
+        //#region definitions
         let tabGroupTitle;
         let tabGroupColor;
 
@@ -367,6 +366,7 @@ const processQueue = (queue, queueType)=>{
             Object.assign(relevantDetails, { messageInputs: messageInputs });
         }
         if("message" in currentItem){
+            //message is an object here.
             msg = currentItem.message
             Object.assign(relevantDetails, { message: msg });
         }
@@ -381,7 +381,7 @@ const processQueue = (queue, queueType)=>{
             scriptingInProgress = currentItem.scriptingInProgress;
             Object.assign(relevantDetails, {scriptingInProgress: scriptingInProgress});
         }
-        if("currentScriptingStep" in currentItem){
+        if("currentScriptingStep" in currentItem && currentItem.currentScriptingStep != "N/A"){
             currentScriptingStep = currentItem.currentScriptingStep;
             Object.assign(relevantDetails, {currentScriptingStep: currentScriptingStep});
         }
@@ -619,7 +619,6 @@ const processQueue = (queue, queueType)=>{
                 //Initializing the "Task Browser Managment" Field    
                 //We are assuming the initializing is only done through fetchers.
 
-                //TODO
                 else{
                     initializeTBM(currentItem.ScriptWindowID, currentItem.taskType)
                         .then(()=>{
@@ -817,25 +816,22 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                 else if (message.info.action == actions.runRemFeeTask){
                     // const tabID = Number(message.info.tabID);
 
-                    const theMessage = message.info.message;
-
                     updateTaskDB();
                     
-                    chrome.storage.local.get([localStorageKeys.taskDataBase])
+                    chrome.storage.local.get(localStorageKeys.taskDataBase)
                     .then((taskDataBaseKeyValue)=>{
 
-                        const taskDataBase = taskDataBaseKeyValue[localStorageKeys.taskDataBase];
-                        const remFeeDataBase = taskDataBase[aisNames.remFeeCollect];
-                        const targetOrderInfo = remFeeDataBase[orderID];
-                        
-                        const targetTabID = Number(targetOrderInfo.tabID);
-                        
-                        console.log("target tab ID in storage", targetTabID);
-                        chrome.tabs.sendMessage(targetTabID, {
-                            type: messageTypes.remFeeTaskInit,
-                            info: { message: theMessage },
-                        });
-                        sendResponse("Done."); 
+                        const targetTabID = Number(taskDataBaseKeyValue?.[localStorageKeys.taskDataBase]?.[aisNames.remFeeCollect]?.[orderID]?.tabID);
+                        if(targetTabID){
+                            chrome.tabs.sendMessage(targetTabID, {
+                                type: messageTypes.remFeeTaskInit,
+                                info: { message: message.info.message.feeCollection},
+                            });
+                            sendResponse("Done."); 
+                        }
+                        else{
+                            console.log("Unable to retrieve tab ID.")
+                        }
                     })
                      
                 }
