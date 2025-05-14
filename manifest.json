@@ -6,8 +6,7 @@
     "name": "Remaining Fee Task Master",
   
     "description": "Helps with various financial AIS tasks",
-  
-    
+
     "action":{
       "default_popup": "popup/popup.html"
     },
@@ -62,8 +61,10 @@
           "run_at": "document_end"
         }
     ],
+
     "web_accessible_resources": [{
-    "matches": ["https://northcms.wenzo.com/order/*"],
-    "resources": ["lib/UTILITIES/browser-actions.js", "lib/UTILITIES/custom-utils.js", "pprfm-scripts/pprfm-scripting.js", "lib/UTILITIES/pprfm-browser-action/pprfm-browser-scripts.js"]
+      "matches": ["https://northcms.wenzo.com/*"],
+
+      "resources": ["/lib/shared-objects.js", "/lib/UTILITIES/browser-actions.js", "/lib/UTILITIES/custom-utils.js", "/lib/UTILITIES/pprfm-browser-action/pprfm-browser-scripts.js", "/pprfm-scripts/pprfm-scripting.js"]
     }]
   }
