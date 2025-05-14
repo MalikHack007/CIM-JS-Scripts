@@ -61,5 +61,9 @@
           "js":["pprfm-scripts/remainingFeeTaskSearcher.js"],
           "run_at": "document_end"
         }
-    ]
+    ],
+    "web_accessible_resources": [{
+    "matches": ["https://northcms.wenzo.com/order/*"],
+    "resources": ["lib/UTILITIES/browser-actions.js", "lib/UTILITIES/custom-utils.js", "pprfm-scripts/pprfm-scripting.js", "lib/UTILITIES/pprfm-browser-action/pprfm-browser-scripts.js"]
+    }]
   }

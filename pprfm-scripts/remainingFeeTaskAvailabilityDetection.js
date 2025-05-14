@@ -643,20 +643,20 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                         //produce date in the format of yyyy-mm-dd
                         
                         const getDateISO8601 = ()=>{
-                        const now = new Date();
-                        
-                        const year = now.getFullYear();
-                        const month = String(now.getMonth()+1).padStart(2, '0');
-                        const day = String(now.getDate()).padStart(2, '0');
-                        const ISO8601Date = `${year}-${month}-${day}`;
-                        
-                        return ISO8601Date;
+                            const now = new Date();
+                            
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth()+1).padStart(2, '0');
+                            const day = String(now.getDate()).padStart(2, '0');
+                            const ISO8601Date = `${year}-${month}-${day}`;
+                            
+                            return ISO8601Date;
                         };
                         
                         function postNIWPPWarning (){
                             return new Promise(async (resolve)=>{
                                 const currentDate = getDateISO8601();
-                                await addSpecialNote(`<font color="red">${currentDate} NIW PP warning msg posted @ ${latestMsgTimeStamp}</font>`, 1);
+                                await addSpecialNote(`<font color="red">${currentDate} New NIW PP warning msg posted @ ${latestMsgTimeStamp}</font>`, 1);
                                 resolve();
                             })
                         };
@@ -664,7 +664,7 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                         function postEB1APPWarning (){
                             return new Promise(async(resolve)=>{
                                 const currentDate = getDateISO8601();
-                                await addSpecialNote(`<font color="red">${currentDate} EB1A PP warning msg posted @ ${latestMsgTimeStamp}</font>`, 1);
+                                await addSpecialNote(`<font color="red">${currentDate} New EB1A PP warning msg posted @ ${latestMsgTimeStamp}</font>`, 1);
                                 resolve();
                             })
 
@@ -672,6 +672,8 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
 
 
                         function approveMostRecentMsg(){
+                            console.log("attempted to approve the message");
+
                             const targetMsgBox = document.querySelector("#messageBox0");
                             // console.log(targetMsgBox);
                             
@@ -693,8 +695,13 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                             // window.alert = function() {}; 
                             // window.confirm = function() { return true; }; 
                             // window.prompt = function() { return ""; };
+                            const event = new MouseEvent("click", {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window,
+                            });
                             
-                            approvalBtn.click();
+                            approvalBtn.dispatchEvent(event);
                         }
 
                         function markOffRemainingFeeAIS(){
@@ -781,7 +788,9 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                                 const secondLatestMsgBox = msgBoxBody.children[1];
                                 //If someone else has already posted a similar message
                                 //below, terminate the scripting process
-                                if(secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord2) && secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyword3)&& secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord4)){
+                                const secondToLatestMsgBox = msgBoxBody.children[1];
+                                const secondToLatestMsgSender = getPendingMsgSender(secondToLatestMsgBox);
+                                if(secondToLatestMsgSender != taskers.taskMaster && secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord2) && secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyword3)&& secondLatestMsgBox.textContent.toLowerCase().includes(remainingFeeMsgKeywords.touchedKeyWord4)){
 
                                     //send a message to update the scripting in progress to false, and then terminate the scripting
                                     await chrome.runtime.sendMessage(
@@ -827,10 +836,13 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                             //#endregion
                             if(targetOrderInfo.currentScriptingStep == remFeeKeySteps.dummyStep){
                                 //send a message to background to have the window's alerts removed, also, update the scripting data to the next step
+                                
                                 await chrome.runtime.sendMessage({ 
                                     type: messageTypes.updateTaskDB, 
                                     info: { taskType: aisNames.remFeeCollect, orderID, scriptingInProgress: false, action: actions.removeAlertsFromWindow }
                                 })
+                                //TODO THIS NEVER MADE IT PAST THE AWAIT
+                                console.log("made it past the await at line 832.")
                                 //send invoices
                                 if(targetOrderInfo.messageInputs.isPp){
                                     //send two invoices
@@ -867,41 +879,53 @@ const sendMsgToUpdteTskDB = ({taskType, orderID, taskStatus, messageInputs="N/A"
                             }
                             else if(targetOrderInfo.currentScriptingStep == remFeeKeySteps.sendPPWarning){
                                 //send a message to background to have the window's alerts removed, also, update the scripting data to the next step
-                                await chrome.runtime.sendMessage({ 
+                                chrome.runtime.sendMessage({ 
                                     type: messageTypes.updateTaskDB, 
                                     info: { taskType: aisNames.remFeeCollect, orderID, currentScriptingStep: remFeeKeySteps.dummyStep, action: actions.removeAlertsFromWindow }
                                 })
+                                .then((response)=>{
                                 //Approve the previous message first
-                                approveMostRecentMsg();
-                                //get the pp warning message of the order
-                                chrome.storage.local.get(localStorageKeys.taskDataBase)
-                                    .then((result)=>{
-                                        const ppWarningMessage = result?.[localStorageKeys.taskDataBase]?.[aisNames.remFeeCollect]?.[orderID]?.[message]?.ppWarning
-                                        if(ppWarningMessage){
-                                            enterText(ppWarningMessage);
-                                            chrome.runtime.sendMessage({ 
-                                                type: messageTypes.updateTaskDB, 
-                                                info: { taskType: aisNames.remFeeCollect, 
-                                                        orderID, 
-                                                        action: actions.sendMessage 
+                                console.log("successful at line 879", response);
+                                addDelay(5000)
+                                    .then(()=>{
+                                        //TODO MOST RECENT MESSAGE IS NOT APPROVABLE
+                                        approveMostRecentMsg();
+                                        addDelay(5000)
+                                            .then(()=>{
+                                                //get the pp warning message of the order
+                                                chrome.storage.local.get(localStorageKeys.taskDataBase)
+                                                    .then((result)=>{
+                                                        const ppWarningMessage = result?.[localStorageKeys.taskDataBase]?.[aisNames.remFeeCollect]?.[orderID]?.['message']?.ppWarning
+                                                        if(ppWarningMessage){
+                                                            enterText(ppWarningMessage);
+                                                            chrome.runtime.sendMessage({ 
+                                                                type: messageTypes.updateTaskDB, 
+                                                                info: { taskType: aisNames.remFeeCollect, 
+                                                                        orderID, 
+                                                                        action: actions.sendMessage 
+                                                                        }
+                                                            })
+                                                            .then((response)=>{
+                                                                console.log("response received:", response);
+                                                                const sendBtn = document.querySelector('input.btn.btn-secondary.mb-1.ml-1');
+                                                                // console.log("content script, btn selected:", sendBtn);
+                                                                const event = new MouseEvent("click", {
+                                                                    bubbles: true,
+                                                                    cancelable: true,
+                                                                    view: window,
+                                                                });
+                                                                sendBtn.dispatchEvent(event);
+                                                            })
                                                         }
+                                                        else{
+                                                            //TODO: When there isn't a pp warning message generated, it should just proceed to regular steps.
+                                                            console.log("ERROR: CANNOT READ PP WARNING MESSAGE")
+                                                        }
+                                                    })
                                             })
-                                            .then((response)=>{
-                                                console.log("response received:", response);
-                                                const sendBtn = document.querySelector('input.btn.btn-secondary.mb-1.ml-1');
-                                                // console.log("content script, btn selected:", sendBtn);
-                                                const event = new MouseEvent("click", {
-                                                    bubbles: true,
-                                                    cancelable: true,
-                                                    view: window,
-                                                });
-                                                sendBtn.dispatchEvent(event);
-                                            })
-                                        }
-                                        else{
-                                            console.log("ERROR: CANNOT READ PP WARNING MESSAGE")
-                                        }
                                     })
+
+                                })
                             }
                         }
 

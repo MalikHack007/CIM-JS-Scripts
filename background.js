@@ -381,7 +381,7 @@ const processQueue = (queue, queueType)=>{
             scriptingInProgress = currentItem.scriptingInProgress;
             Object.assign(relevantDetails, {scriptingInProgress: scriptingInProgress});
         }
-        if("currentScriptingStep" in currentItem && currentItem.currentScriptingStep != "N/A"){
+        if("currentScriptingStep" in currentItem){
             currentScriptingStep = currentItem.currentScriptingStep;
             Object.assign(relevantDetails, {currentScriptingStep: currentScriptingStep});
         }
@@ -900,6 +900,14 @@ chrome.runtime.onMessage.addListener((message, senderObject, sendResponse) =>{
                             { target: { tabId: targetTabID },
                               world: "MAIN",
                               func: ()=>{
+                                //TODO
+                                const event = new MouseEvent("click", {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                });
+                                window.event = event;
+                                //Added the click event to the window object
                                 window.alert = function() {}; 
                                 window.confirm = function() { return true; }; 
                                 window.prompt = function() { return ""; };

@@ -28,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const serviceCenterSelect = document.querySelector('select[name="serviceCenter"]');
 
-  const processingTimeInput = document.querySelector('#processing-time');
-
   const anotherPDDateInput = document.querySelector('#anotherPD')
   //#endregion
 
@@ -93,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
       dependsOn: ["ppYesOrNo"],
       condition: ([checkedPPRadio]) => checkedPPRadio == "y"
     },
+    oldPpInfo:{
+      dependsOn: ["ppYesOrNo","ppInfoPvdedYesOrNo"],
+      condition: ([checkedPPRadio, ppInfoRadio]) => checkedPPRadio == 'y' && ppInfoRadio == 'y'
+    },
 
     ppSpecificField:{
       dependsOn:["ppYesOrNo"],
@@ -112,11 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
     serviceCenterField: {
       dependsOn: ["ppYesOrNo"],
       condition: ([checkedPPRadio]) => checkedPPRadio == 'y'
-    },
-
-    processingTimeField: {
-      dependsOn: ["ppYesOrNo", "ppInfoPvdedYesOrNo", "caseType"],
-      condition: ([checkedPPRadio, ppInfoRadio, caseTypeSelect]) => checkedPPRadio == 'y' && ppInfoRadio == 'n' && caseTypeSelect == 'EB1A' 
     },
 
     h1BIsExpiringField:{
@@ -173,10 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
       dependsOn:["filingFeeCredit"],
       condition:([discountAmount]) => discountAmount == 0
     },
-    processingTimeWarning: {
-      dependsOn:["processingTime"],
-      condition: ([processingTimeMonths]) => processingTimeMonths == 0
-    },
     pdDateWarning:{
       dependsOn:["exactPriorityDate"],
       condition: ([exactPD]) => exactPD == ""
@@ -203,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     remainingAttorneyFee: 0,
     filingFeeCreditType: "N/A",
     filingFeeCredit: 0,
-    processingTime: 0,
     exactPriorityDate: "",
     earlierCaseType: "",
     ppSpecific: "n"
@@ -234,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const radioPairListFormState = [caseSpecificRadioBtns, directPPRadios, hasComplainedRadios, attyFeePaidRadios, isDiscountRadios, ppInfoPvdedRadios, isInUSRadios, pdIsCurrentRadios, anotherPDRadios, ppSpecificRadios, unresolvedInquiryRadios];
 
-  const inputListFormState = [attyFeeAmtInput, discAmtInput, processingTimeInput, anotherPDDateInput, earlierCaseTypeInput];
+  const inputListFormState = [attyFeeAmtInput, discAmtInput, anotherPDDateInput, earlierCaseTypeInput];
 
   function evaluateVisibility(field, dependedStates, rules) {
     const ruleThatApplies = rules[field];
@@ -469,7 +461,7 @@ runTaskBtn.onclick = ()=>{
                         msgSent: true, 
                         action: actions.runRemFeeTask, 
                         scriptingInProgress: true, 
-                        currentScriptingStep: messageInputs.isPp ? remFeeKeySteps.sendPPWarning : "N/A"
+                        currentScriptingStep: (messageInputs.isPp && (!messageInputs.ppInfoIsProvided || (messageInputs.ppInfoIsProvided && messageInputs.oldPpInfo))) ? remFeeKeySteps.sendPPWarning : remFeeKeySteps.dummyStep
                         };
   const finalMessageToBG = {type: messageTypes.updateTaskDB, info:finalPayload};
   chrome.runtime.sendMessage(finalMessageToBG).then(()=>{

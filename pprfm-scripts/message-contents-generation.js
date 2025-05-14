@@ -251,9 +251,24 @@ export function generatePPWarningMessage(caseDetails){
         },
 
         pdAndCOBSpecificWarning: function(){
+            const handlePortedPD = function (){
+                if(!caseDetails.anotherPriorityDate){
+                    return ", ";
+                }
+
+                else{
+                    if(caseDetails.isOtherPDApproved){
+                        return ` (in your case, your priority date will be the one ported through your approved ${caseDetails.earlierCaseType}, which is ${caseDetails.exactPriorityDate}), `;
+                    }
+
+                    else{
+                        return ` (in your case, your priority date will be the one ported through your ${caseDetails.earlierCaseType} once approved, which is ${caseDetails.exactPriorityDate}), `;
+                    }
+                };
+            }
             const clientPacketInfo = `<p>For more information, you may also refer to the "Priority Date Information_How to know if your Priority Date is Current", "Q_A for Premium Processing Service Expansion of EB2-NIW_ I-765_ I-539", and the "Adjustment of Status I-485 v. Immigrant Visa Processing" under the Visa FAQ tab. You may also refer to our recent announcement about the Visa Bulletin. Please note that the FAQ documents provided in our system are intended for general informational purposes only and do not constitute legal advice. If you have any questions after reading the FAQs, please do not hesitate to reach out to your attorneys so that we can advise you accordingly based on your specific situations.</p><p>&nbsp;</p>`;
             const pdNotCurrentNIW = `<p dir="ltr">As a reminder, requesting Premium Processing Service can only shorten the processing time of your I-140 petition. It does not affect your priority date. Your priority date should be approximately the date USCIS received your I-140 petition. Your priority date is NOT the date USCIS approves your petition. Having the I-140 approval through Premium Processing Service will not expedite the wait time for your priority date to become current.&nbsp;</p><p><span id="docs-internal-guid-9eebe264-7fff-907c-add6-34bdce609692"><br>After your I-140 is approved, even with Premium Processing, you will still need to wait for your priority date to become current in order to proceed with the I-485 or the Immigrant Visa Processing. To check the priority date for people born in your country, please refer to the <a data-mce-href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" href="https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html" target="_blank" rel="noopener">Visa Bulletin</a>.&nbsp;</span><br data-mce-bogus="1"></p><p>&nbsp;</p>`;
-            const pdNotCurrentEB1A = `<p>Also, EB-1 priority dates are not “Current” for applicants born in ${caseDetails.countryOfBirth}, without a clear indication of when the EB-1 priority dates will again become “Current”. If you do not have a priority date earlier than the cut-off date listed on the Visa Bulletin, then you would not be able to proceed with the next step of the green card application even if you receive an I-140 approval on the premium processing timeline. Whether or not you use premium processing, your priority date is set by your date of filing, not by your date of approval. As such, your priority date is not impacted by your decision to use either Premium or Regular Processing. </p><p>&nbsp;</p>`;
+            const pdNotCurrentEB1A = `<p>Also, EB-1 priority dates are not “Current” for applicants born in ${caseDetails.countryOfBirth}, without a clear indication of when the EB-1 priority dates will again become “Current”. If you do not have a priority date earlier than the cut-off date listed on the Visa Bulletin, then you would not be able to proceed with the next step of the green card application even if you receive an I-140 approval on the premium processing timeline. Whether or not you use premium processing, your priority date is set by your date of filing${handlePortedPD()} not by your date of approval. As such, your priority date is not impacted by your decision to use either Premium or Regular Processing. </p><p>&nbsp;</p>`;
             if(caseDetails.usersCase == 'EB1A'){
                 if(caseDetails.countryOfBirth == "China" || caseDetails.countryOfBirth == "India"){
                     return pdNotCurrentEB1A + clientPacketInfo;

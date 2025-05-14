@@ -142,6 +142,21 @@
                       </div>
                   </label>
                 </div>
+                <div class="field" id="oldPpInfo-wrapper">
+                  <label class="label">
+                      Was the pp info provided outdated?
+                      <div class="control">
+                          <label class="radio">
+                          <input type="radio" name="oldPpInfo" value="y">
+                          Yes
+                          </label>
+                          <label class="radio">
+                          <input type="radio" name="oldPpInfo" value="n" checked>
+                          No
+                          </label>
+                      </div>
+                  </label>
+                </div>
                 <!-- countryOfBirth -->
                 <div class="field" id="countryOfBirthField-wrapper">
                   <label class="label" for="birth-country">Client's Country of Birth</label>
@@ -341,14 +356,6 @@
                 </div>
                 <p class="help is-danger" id="serviceCenterWarning-wrapper">Please enter a valid service center</p>
               </div>
-              <!-- Processing Time -->
-              <div class="field" id="processingTimeField-wrapper">
-                <label class="label" for="processing-time">Processing Time (Months)</label>
-                <div class="control">
-                  <input class="input" type="number" placeholder="13" name="processingTime" id="processing-time">
-                </div>
-                <p class="help is-danger" id="processingTimeWarning-wrapper">Please enter a valid processing time.</p>
-              </div> 
             </fieldset>
           </div>
 
